@@ -1,0 +1,97 @@
+@use "@/common/styles/colors"
+
+.account-page
+  display: flex
+  flex-direction: column
+  margin-top: 1rem
+  gap: 2rem
+
+  @media (max-width: 768px)
+    gap: 1.5rem
+    margin-top: 0.5rem
+
+.account-section
+  h2
+    margin: 0
+
+    @media (max-width: 768px)
+      font-size: 1.1rem
+
+  p
+    color: colors.$subtext
+
+    @media (max-width: 768px)
+      font-size: 0.9rem
+
+  .tfa-title
+    display: flex
+    align-items: center
+    gap: 0.5rem
+
+    @media (max-width: 768px)
+      flex-wrap: wrap
+
+    p
+      margin: 0
+      padding: 0.2rem 0.5rem
+      border-radius: 0.5rem
+
+      @media (max-width: 768px)
+        font-size: 0.85rem
+
+    .active
+      background-color: colors.$success-opacity
+      color: colors.$success
+
+    .inactive
+      background-color: colors.$error-opacity
+      color: colors.$error
+
+  .section-inner
+    margin-top: 1rem
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 2rem
+
+    @media (max-width: 1024px)
+      flex-direction: column
+      align-items: flex-start
+      gap: 1rem
+
+    p
+      margin: 0
+
+      @media (max-width: 1024px)
+        max-width: 100% !important
+
+    .form-group
+      display: flex
+      width: 100%
+      flex-direction: column
+      gap: 0.3rem
+
+      label
+        color: colors.$subtext
+        font-weight: 600
+
+        @media (max-width: 768px)
+          font-size: 0.9rem
+
+      .fd-updated
+        border: 1px solid colors.$success
+
+  .language-help
+
+    .translate-help
+      margin: 0.5rem 0 0 0
+      font-size: 0.875rem
+      opacity: 0.8
+
+      @media (max-width: 768px)
+        font-size: 0.8rem
+
+      .translate-link
+        color: inherit
+        text-decoration: underline
+        margin-left: 0.25rem

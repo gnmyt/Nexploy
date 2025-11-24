@@ -1,0 +1,86 @@
+@use "@/common/styles/colors"
+
+.sessions-page
+  display: flex
+  flex-direction: column
+  margin-top: 1rem
+  gap: 2rem
+
+  @media (max-width: 768px)
+    gap: 1rem
+    margin-top: 0.5rem
+
+  .session
+    border: 2px solid colors.$gray
+    padding: 1rem 1.5rem
+    border-radius: 1rem
+    display: flex
+    justify-content: space-between
+    align-items: center
+    width: 100%
+    box-sizing: border-box
+
+    @media (max-width: 1024px)
+      flex-direction: column
+      align-items: flex-start
+      gap: 1rem
+      padding: 1rem
+
+    .session-info
+      display: flex
+      gap: 1.5rem
+      align-items: center
+
+      @media (max-width: 1024px)
+        gap: 1rem
+        width: 100%
+
+    .session-details
+      display: flex
+      flex-direction: column
+      gap: 0.5rem
+
+      h2, p
+        margin: 0
+
+      h2
+        @media (max-width: 768px)
+          font-size: 1rem
+
+      p
+        font-weight: 600
+        color: colors.$subtext
+
+        @media (max-width: 768px)
+          font-size: 0.85rem
+
+    .icon-container
+      display: flex
+      align-items: center
+      justify-content: center
+      padding: 0.7rem
+      color: colors.$primary
+      background-color: colors.$primary-opacity
+      border-radius: 1rem
+
+      @media (max-width: 768px)
+        padding: 0.6rem
+
+      svg
+        width: 2rem
+        height: 2rem
+
+        @media (max-width: 768px)
+          width: 1.5rem
+          height: 1.5rem
+
+    .icon-current
+      color: colors.$success
+      background-color: colors.$success-opacity
+
+    .session-actions
+      @media (max-width: 1024px)
+        width: 100%
+
+        .btn
+          width: 100%

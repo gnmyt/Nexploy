@@ -1,0 +1,85 @@
+const path = require("path");
+const logger = require("./utils/logger");
+const fs = require("fs");
+const expressJSDocSwagger = require("express-jsdoc-swagger");
+const packageJson = require("../package.json");
+const { extractSchemasFromValidation } = require("./utils/joiToOpenApi");
+
+const extractValidationSchemas = () => {
+    const schemas = {};
+    const validationPath = path.resolve(__dirname, "validations");
+
+    try {
+        const files = fs.readdirSync(validationPath);
+        const validationFiles = files
+            .filter(file => file.endsWith('.js'))
+            .map(file => path.join(validationPath, file));
+
+        validationFiles.forEach(file => {
+            try {
+                const validationModule = require(file);
+                const extractedSchemas = extractSchemasFromValidation(validationModule);
+                Object.assign(schemas, extractedSchemas);
+            } catch (err) {
+                logger.warn("Could not extract schemas from file", { file, error: err.message });
+            }
+        });
+    } catch (err) {
+        logger.warn("Could not scan validation directory", { error: err.message });
+    }
+
+    return schemas;
+};
+
+module.exports.generateOpenAPISpec = (app) => {
+    const validationSchemas = extractValidationSchemas();
+
+    const options = {
+        info: {
+            title: "Nexploy API",
+            version: packageJson.version,
+            description: "API documentation for Nexploy",
+        },
+        servers: [
+            { url: "/api", description: "Production API server" },
+            { url: "http://localhost:5979/api", description: "Development API server" },
+        ],
+        baseDir: __dirname,
+        filesPattern: ["./routes/**/*.js",],
+        swaggerUIPath: "/api-docs",
+        exposeSwaggerUI: true,
+        exposeApiDocs: true,
+        apiDocsPath: '/api-docs.json',
+        notRequiredAsNullable: false,
+        swaggerUiOptions: {
+            customSiteTitle: 'Nexploy API Documentation',
+            customfavIcon: '/assets/img/favicon.png',
+        },
+        security: {
+            BearerAuth: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "session",
+                description: "Enter your session token to authenticate API requests",
+            },
+        },
+    };
+
+    return new Promise((resolve, reject) => {
+        const instance = expressJSDocSwagger(app)(options);
+
+        instance.on("finish", (swaggerSpec) => {
+            try {
+                Object.assign(swaggerSpec.components.schemas, validationSchemas);
+
+                resolve(swaggerSpec);
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+        instance.on("error", (error) => {
+            reject(error);
+        });
+    });
+};

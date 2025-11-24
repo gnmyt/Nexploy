@@ -1,0 +1,43 @@
+@use "@/common/styles/colors"
+
+.input-container
+  position: relative
+  width: 100%
+
+.input-icon
+  position: absolute
+  top: 50%
+  left: 0.75rem
+  width: 2rem
+  height: 2rem
+  transform: translateY(-50%)
+  color: colors.$subtext
+  opacity: 0.9
+
+  @media (max-width: 768px)
+    width: 1.75rem
+    height: 1.75rem
+    left: 0.6rem
+
+.input
+  padding: 0.8rem 2rem 0.8rem 3.5rem
+  border: 1px solid colors.$gray
+  background-color: colors.$lighter-background
+  color: colors.$white
+  box-sizing: border-box
+  border-radius: 0.7rem
+  font-size: 14pt
+  width: 100%
+  outline: none
+
+  @media (max-width: 768px)
+    padding: 0.7rem 1.5rem 0.7rem 3rem
+    font-size: 12pt
+
+  @media (max-width: 480px)
+    padding: 0.6rem 1rem 0.6rem 2.75rem
+    font-size: 11pt
+
+  &:focus
+    border: 1px solid colors.$primary
+    background-color: colors.$dark-gray

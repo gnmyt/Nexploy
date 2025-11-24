@@ -1,0 +1,225 @@
+@use "@/common/styles/colors"
+
+.sidebar
+  width: 5rem
+  user-select: none
+  background-color: colors.$lighter-background
+  height: 100%
+  display: flex
+  flex-direction: column
+  align-items: center
+  border-right: 2px solid colors.$dark-gray
+  overflow: hidden
+  transition: all 0.2s
+  position: fixed
+  left: 0
+  top: 0
+  z-index: 10
+
+  @media (max-width: 768px)
+    width: 100%
+    height: 4.5rem
+    flex-direction: row
+    border-right: none
+    border-top: 2px solid colors.$dark-gray
+    position: fixed
+    top: auto
+    bottom: 0
+    left: 0
+
+  .sidebar-top
+    display: flex
+    flex-direction: column
+    align-items: center
+    flex: 1
+    overflow: hidden
+
+    @media (max-width: 768px)
+      flex-direction: row
+      width: 100%
+      overflow-x: auto
+
+  .sidebar-logo
+    margin-top: 0.5rem
+    width: 3.5rem
+    height: 3.5rem
+    cursor: pointer
+    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.2))
+    transition: all 0.3s ease
+    overflow: visible
+
+    svg
+      width: 100%
+      height: 100%
+      overflow: visible
+
+    &:hover
+      filter: drop-shadow(0 0 15px rgba(147, 51, 234, 0.5))
+      transform: scale(1.05)
+
+    &.clicked
+      .hex-layer-1
+        animation: none
+
+      .hex-layer-2
+        animation: hexClickBurst 0.8s ease-out forwards
+
+      .hex-layer-3
+        animation: hexClickBurst 0.8s ease-out 0.1s forwards
+
+      .hex-layer-4
+        animation: hexClickCore 0.8s ease-out forwards
+
+    @media (max-width: 768px)
+      display: none
+
+  img
+    margin-top: 0.5rem
+    width: 3.5rem
+    height: 3.5rem
+    cursor: pointer
+    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.2))
+    transition: all 0.3s ease
+
+    &:hover
+      filter: drop-shadow(0 0 15px rgba(147, 51, 234, 0.5))
+      transform: scale(1.05)
+
+    @media (max-width: 768px)
+      display: none
+
+  @keyframes hexClickOuter
+    0%
+      transform: scale(1) rotate(0deg)
+      opacity: 1
+    50%
+      transform: scale(1.08) rotate(120deg)
+      opacity: 1
+    100%
+      transform: scale(1) rotate(0deg)
+      opacity: 1
+
+  @keyframes hexClickBurst
+    0%
+      transform: scale(1)
+      opacity: 1
+    40%
+      transform: scale(0.7)
+      opacity: 0.5
+    100%
+      transform: scale(1)
+      opacity: 1
+
+  @keyframes hexClickCore
+    0%
+      transform: scale(1) translateY(0)
+      opacity: 1
+    30%
+      transform: scale(1.4) translateY(-3px)
+      opacity: 0.8
+    60%
+      transform: scale(0.9) translateY(2px)
+      opacity: 1
+    100%
+      transform: scale(1) translateY(0)
+      opacity: 1
+
+  hr
+    background-color: colors.$dark-gray
+    width: 50%
+    margin: 1rem 0
+    border: none
+    height: 2px
+    border-radius: 1rem
+
+    @media (max-width: 768px)
+      display: none
+
+  nav
+    display: flex
+    flex-direction: column
+    gap: 1rem
+    overflow-y: auto
+    flex: 1
+    align-items: center
+    width: 100%
+    scrollbar-width: none
+    -ms-overflow-style: none
+
+    &::-webkit-scrollbar
+      display: none
+
+    @media (max-width: 768px)
+      flex-direction: row
+      gap: 0.5rem
+      padding: 0 1rem
+      justify-content: center
+      overflow-x: auto
+
+    .nav-item
+      width: 3.75rem
+      height: 3.75rem
+      flex-shrink: 0
+      display: flex
+      justify-content: center
+      align-items: center
+      color: colors.$white
+      border: 1px solid transparent
+      border-radius: 1rem
+      transition: all 0.2s
+      cursor: pointer
+
+      svg
+        width: 2.5rem
+        height: 2.5rem
+
+      @media (max-width: 768px)
+        width: 3rem
+        height: 3rem
+
+        svg
+          width: 1.8rem
+          height: 1.8rem
+
+      &:hover:not(.nav-item-disabled)
+        color: colors.$primary
+
+      &.nav-item-active
+        background-color: colors.$dark-gray
+        border: 1px solid colors.$gray
+        color: colors.$primary
+
+      &.nav-item-disabled
+        opacity: 0.5
+        cursor: not-allowed
+
+  .log-out-area
+    border-top: 2px solid colors.$dark-gray
+    width: 100%
+    height: 3rem
+    display: flex
+    justify-content: center
+    align-items: center
+    padding: 0.5rem
+    flex-shrink: 0
+
+    @media (max-width: 768px)
+      border-top: none
+      border-left: 2px solid colors.$dark-gray
+      width: 4rem
+      height: 100%
+      padding: 0
+
+    .log-out-btn
+      cursor: pointer
+
+      svg
+        width: 2rem
+        height: 2rem
+
+        @media (max-width: 768px)
+          width: 1.8rem
+          height: 1.8rem
+
+      &:hover
+        color: colors.$error

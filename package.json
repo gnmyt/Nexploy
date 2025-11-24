@@ -1,0 +1,39 @@
+{
+  "name": "nexploy",
+  "version": "1.0.0",
+  "main": "server/index.js",
+  "repository": "https://github.com/gnmyt/Nexploy.git",
+  "author": "Mathias Wagner",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "decompress": "^4.2.1",
+    "express": "^5.1.0",
+    "express-jsdoc-swagger": "^1.8.0",
+    "express-ws": "^5.0.2",
+    "joi": "^18.0.2",
+    "sequelize": "^6.37.7",
+    "speakeasy": "^2.0.0",
+    "sqlite3": "^5.1.7",
+    "ssh2": "^1.17.0",
+    "uuid": "^13.0.0",
+    "winston": "^3.18.3",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.2.3",
+    "vitepress": "^1.6.4",
+    "vitepress-openapi": "^0.1.10"
+  },
+  "scripts": {
+    "dev:server": "bun --watch server/index.js",
+    "dev:client": "cd client && bun run dev",
+    "dev": "concurrently --kill-others-on-fail \"bun dev:server\" \"bun dev:client\"",
+    "docs:openapi": "bun scripts/generate-openapi.js",
+    "docs:dev": "bun docs:openapi && vitepress dev docs",
+    "docs:build": "bun docs:openapi && vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  }
+}
