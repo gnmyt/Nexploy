@@ -19,7 +19,7 @@ hero:
 features:
   - icon: 👀
     title: Open Preview
-    details: Nexploy is currently in development and is open for preview. 
+    details: Nexploy is currently in development and is not usable. 
   - icon: 🔒
     title: Secure
     details: Two-factor authentication, session management and encryption built-in.
