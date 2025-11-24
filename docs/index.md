@@ -7,7 +7,7 @@ hero:
   tagline: App deployments & container management made stupid simple.
   actions:
     - theme: brand
-      text: Run preview
+      text: I'm interested
       link: /
     - theme: alt
       text: GitHub
@@ -18,7 +18,7 @@ hero:
 
 features:
   - icon: 👀
-    title: Open Preview
+    title: Not available
     details: Nexploy is currently in development and is not usable. 
   - icon: 🔒
     title: Secure
@@ -40,9 +40,9 @@ features:
 
 <style>
 :root {
-  --vp-home-hero-name-color: #314BD3;
+  --vp-home-hero-name-color: #9333EA;
 
-  --vp-home-hero-image-background-image: linear-gradient(rgba(49,75,211,0.25), rgba(49,75,211,0.25));
+  --vp-home-hero-image-background-image: linear-gradient(rgba(147, 51, 234, 0.25), rgba(147, 51, 234, 0.25));
   --vp-home-hero-image-filter: blur(100px);
 }
 </style>

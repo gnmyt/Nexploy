@@ -28,7 +28,7 @@ export default defineConfig({
 
     head: [
         ["link", { rel: "icon", type: "image/png", href: "/logo.png" }],
-        ["meta", { name: "theme-color", content: "#1C2232" }],
+        ["meta", { name: "theme-color", content: "#9333EA" }],
         ["meta", { property: "og:type", content: "website" }],
         ["meta", { property: "og:locale", content: "en" }],
         ["meta", {
@@ -40,7 +40,7 @@ export default defineConfig({
         ["meta", { property: "og:image:type", content: "image/png" }],
         ["meta", { property: "twitter:card", content: "summary_large_image" }],
         ["meta", { property: "twitter:image:src", content: "/thumbnail.png" }],
-        ["meta", { property: "og:url", content: "https://docs.nexploy.dev" }],
+        ["meta", { property: "og:url", content: "https://nexploy.gnm.dev" }],
     ],
     themeConfig: {
 
@@ -53,7 +53,7 @@ export default defineConfig({
 
         footer: {
             message: "Distributed under the MIT License",
-            copyright: "© 2024 Mathias Wagner",
+            copyright: "© 2025 Mathias Wagner",
         },
         search: {
             provider: "local",
