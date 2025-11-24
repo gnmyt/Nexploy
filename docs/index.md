@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: I'm interested
-      link: /
+      link: https://github.com/gnmyt/Nexploy/discussions/2
     - theme: alt
       text: GitHub
       link: https://github.com/gnmyt/Nexploy
