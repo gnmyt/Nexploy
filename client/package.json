@@ -14,7 +14,7 @@
     "@mdi/react": "^1.6.1",
     "chart.js": "^4.5.1",
     "qrcode.react": "^4.2.0",
-    "react": "^19.2.0",
+    "react": "^19.2.1",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.0",
