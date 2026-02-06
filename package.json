@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.2.4",
     "vitepress": "^1.6.4",
     "vitepress-openapi": "^0.1.13"
   },
