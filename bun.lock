@@ -24,7 +24,7 @@
         "concurrently": "^9.2.1",
         "dotenv": "^17.3.1",
         "vitepress": "^1.6.4",
-        "vitepress-openapi": "^0.1.13",
+        "vitepress-openapi": "^0.1.14",
       },
     },
   },
@@ -1003,7 +1003,7 @@
 
     "vitepress": ["vitepress@1.6.4", "", { "dependencies": { "@docsearch/css": "3.8.2", "@docsearch/js": "3.8.2", "@iconify-json/simple-icons": "^1.2.21", "@shikijs/core": "^2.1.0", "@shikijs/transformers": "^2.1.0", "@shikijs/types": "^2.1.0", "@types/markdown-it": "^14.1.2", "@vitejs/plugin-vue": "^5.2.1", "@vue/devtools-api": "^7.7.0", "@vue/shared": "^3.5.13", "@vueuse/core": "^12.4.0", "@vueuse/integrations": "^12.4.0", "focus-trap": "^7.6.4", "mark.js": "8.11.1", "minisearch": "^7.1.1", "shiki": "^2.1.0", "vite": "^5.4.14", "vue": "^3.5.13" }, "peerDependencies": { "markdown-it-mathjax3": "^4", "postcss": "^8" }, "optionalPeers": ["markdown-it-mathjax3", "postcss"], "bin": { "vitepress": "bin/vitepress.js" } }, "sha512-+2ym1/+0VVrbhNyRoFFesVvBvHAVMZMK0rw60E3X/5349M1GuVdKeazuksqopEdvkKwKGs21Q729jX81/bkBJg=="],
 
-    "vitepress-openapi": ["vitepress-openapi@0.1.13", "", { "dependencies": { "@vueuse/core": "^13.1.0", "class-variance-authority": "^0.7.1", "clsx": "^2.1.1", "lucide-vue-next": "^0.503.0", "markdown-it-link-attributes": "^4.0.1", "reka-ui": "^2.2.0" }, "peerDependencies": { "vitepress": ">=1.0.0", "vue": "^3.0.0" } }, "sha512-cu0d07Gn6NCtWCNWtNI91bM41OeLBX5wdKRSCxaC1wZv9RSBNZ35KKT9GW5+Eb0qDx0wBtGeXZ9fIGf5QT3xGA=="],
+    "vitepress-openapi": ["vitepress-openapi@0.1.14", "", { "dependencies": { "@vueuse/core": "^13.1.0", "class-variance-authority": "^0.7.1", "clsx": "^2.1.1", "lucide-vue-next": "^0.503.0", "markdown-it-link-attributes": "^4.0.1", "reka-ui": "^2.2.0" }, "peerDependencies": { "vitepress": ">=1.0.0", "vue": "^3.0.0" } }, "sha512-or1kyYcXYHPcNly1kYPShSDfTZBL1TqNIRAOQM00kJAQ6OedhG/fM78PQ9ZHb8/H3raCn2dQ0WBYXcp0LV4zSQ=="],
 
     "vue": ["vue@3.5.24", "", { "dependencies": { "@vue/compiler-dom": "3.5.24", "@vue/compiler-sfc": "3.5.24", "@vue/runtime-dom": "3.5.24", "@vue/server-renderer": "3.5.24", "@vue/shared": "3.5.24" }, "peerDependencies": { "typescript": "*" }, "optionalPeers": ["typescript"] }, "sha512-uTHDOpVQTMjcGgrqFPSb8iO2m1DUvo+WbGqoXQz8Y1CeBYQ0FXf2z1gLRaBtHjlRz7zZUBHxjVB5VTLzYkvftg=="],
 
