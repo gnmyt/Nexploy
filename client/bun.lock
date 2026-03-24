@@ -13,7 +13,7 @@
         "react": "^19.2.4",
         "react-chartjs-2": "^5.3.1",
         "react-dom": "^19.2.4",
-        "react-router-dom": "^7.13.1",
+        "react-router-dom": "^7.13.2",
         "simple-icons": "^16.13.0",
         "ua-parser-js": "^2.0.9",
       },
@@ -563,9 +563,9 @@
 
     "react-is": ["react-is@16.13.1", "", {}, "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ=="],
 
-    "react-router": ["react-router@7.13.1", "", { "dependencies": { "cookie": "^1.0.1", "set-cookie-parser": "^2.6.0" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" }, "optionalPeers": ["react-dom"] }, "sha512-td+xP4X2/6BJvZoX6xw++A2DdEi++YypA69bJUV5oVvqf6/9/9nNlD70YO1e9d3MyamJEBQFEzk6mbfDYbqrSA=="],
+    "react-router": ["react-router@7.13.2", "", { "dependencies": { "cookie": "^1.0.1", "set-cookie-parser": "^2.6.0" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" }, "optionalPeers": ["react-dom"] }, "sha512-tX1Aee+ArlKQP+NIUd7SE6Li+CiGKwQtbS+FfRxPX6Pe4vHOo6nr9d++u5cwg+Z8K/x8tP+7qLmujDtfrAoUJA=="],
 
-    "react-router-dom": ["react-router-dom@7.13.1", "", { "dependencies": { "react-router": "7.13.1" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" } }, "sha512-UJnV3Rxc5TgUPJt2KJpo1Jpy0OKQr0AjgbZzBFjaPJcFOb2Y8jA5H3LT8HUJAiRLlWrEXWHbF1Z4SCZaQjWDHw=="],
+    "react-router-dom": ["react-router-dom@7.13.2", "", { "dependencies": { "react-router": "7.13.2" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" } }, "sha512-aR7SUORwTqAW0JDeiWF07e9SBE9qGpByR9I8kJT5h/FrBKxPMS6TiC7rmVO+gC0q52Bx7JnjWe8Z1sR9faN4YA=="],
 
     "readdirp": ["readdirp@4.1.2", "", {}, "sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg=="],
 
