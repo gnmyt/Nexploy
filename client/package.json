@@ -17,7 +17,7 @@
     "react": "^19.2.5",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.0",
+    "react-router-dom": "^7.14.1",
     "simple-icons": "^16.16.0",
     "ua-parser-js": "^2.0.9"
   },
