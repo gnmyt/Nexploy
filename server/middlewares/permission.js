@@ -1,7 +1,7 @@
-module.exports.isAdmin = async (req, res, next) => {
-    if (req.user.role !== "admin") {
-        return res.status(403).json({ code: 403, message: "Forbidden" });
+module.exports.isAdmin = async (c, next) => {
+    if (c.get("user").role !== "admin") {
+        return c.json({ code: 403, message: "Forbidden" }, 403);
     }
 
-    next();
+    await next();
 }
