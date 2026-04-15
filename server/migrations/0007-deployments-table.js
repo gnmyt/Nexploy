@@ -94,7 +94,7 @@ module.exports = {
                 port: {
                     type: DataTypes.INTEGER,
                     allowNull: true,
-                }
+                },
                 createdAt: {
                     type: DataTypes.DATE,
                     allowNull: false,
