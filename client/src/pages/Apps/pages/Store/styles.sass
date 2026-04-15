@@ -1,0 +1,117 @@
+@use "@/common/styles/colors"
+
+.store-page
+  display: flex
+  flex-direction: column
+  gap: 1.5rem
+  padding-top: 1rem
+
+  .store-filters
+    display: flex
+    gap: 1rem
+    align-items: center
+    margin-bottom: 1rem
+
+    @media (max-width: 768px)
+      flex-direction: column
+      align-items: stretch
+
+    .store-search
+      flex: 1
+      min-width: 300px
+
+      @media (max-width: 768px)
+        min-width: 100%
+
+    .filter-group
+      min-width: 200px
+
+      @media (max-width: 768px)
+        min-width: 100%
+
+  .store-results
+    .results-header
+      display: flex
+      align-items: center
+      justify-content: space-between
+      margin-bottom: 1rem
+
+      h2
+        margin: 0
+        font-size: 1.25rem
+        font-weight: 600
+        color: colors.$white
+
+      .results-count
+        font-size: 0.9rem
+        color: colors.$subtext
+        font-weight: 500
+
+    .apps-grid
+      display: grid
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
+      gap: 1rem
+      align-items: start
+
+      @media (max-width: 768px)
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))
+        gap: 0.75rem
+
+    .no-results
+      display: flex
+      flex-direction: column
+      align-items: center
+      justify-content: center
+      padding: 4rem 2rem
+      text-align: center
+      background-color: colors.$lighter-background
+      border: 1px solid colors.$dark-gray
+      border-radius: 0.75rem
+
+      svg
+        width: 4rem
+        height: 4rem
+        color: colors.$subtext
+        opacity: 0.5
+        margin-bottom: 1rem
+
+      h3
+        margin: 0 0 0.5rem 0
+        font-size: 1.1rem
+        font-weight: 600
+        color: colors.$white
+
+      p
+        margin: 0
+        font-size: 0.9rem
+        color: colors.$subtext
+
+    .pagination
+      display: flex
+      align-items: center
+      justify-content: center
+      gap: 1rem
+      margin-top: 1.5rem
+      padding-top: 1rem
+
+      span
+        font-size: 0.875rem
+        color: colors.$subtext
+
+      button
+        padding: 0.5rem 1rem
+        border-radius: 0.5rem
+        border: 1px solid colors.$dark-gray
+        background-color: colors.$lighter-background
+        color: colors.$white
+        cursor: pointer
+        font-size: 0.85rem
+        transition: all 0.15s ease
+
+        &:hover:not(:disabled)
+          border-color: colors.$primary
+          background-color: colors.$primary-opacity
+
+        &:disabled
+          opacity: 0.4
+          cursor: not-allowed
