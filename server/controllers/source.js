@@ -358,7 +358,7 @@ const ensureDefaultSource = async () => {
     if (!existing) {
         await Source.create({
             name: "official",
-            url: "https://apps.nexploy.dev",
+            url: "https://gnmyt.github.io/NexStore",
             enabled: true,
             isDefault: true,
         });
