@@ -74,6 +74,42 @@ module.exports = {
                     type: DataTypes.DATE,
                     allowNull: true,
                 },
+                cpuUsage: {
+                    type: DataTypes.FLOAT,
+                    allowNull: true,
+                },
+                cpuCores: {
+                    type: DataTypes.INTEGER,
+                    allowNull: true,
+                },
+                memoryUsed: {
+                    type: DataTypes.BIGINT,
+                    allowNull: true,
+                },
+                memoryTotal: {
+                    type: DataTypes.BIGINT,
+                    allowNull: true,
+                },
+                diskUsed: {
+                    type: DataTypes.BIGINT,
+                    allowNull: true,
+                },
+                diskTotal: {
+                    type: DataTypes.BIGINT,
+                    allowNull: true,
+                },
+                osInfo: {
+                    type: DataTypes.STRING,
+                    allowNull: true,
+                },
+                uptime: {
+                    type: DataTypes.BIGINT,
+                    allowNull: true,
+                },
+                metricsUpdatedAt: {
+                    type: DataTypes.DATE,
+                    allowNull: true,
+                },
                 createdAt: {
                     type: DataTypes.DATE,
                     defaultValue: DataTypes.NOW,

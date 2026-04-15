@@ -177,6 +177,7 @@ const provisionServerAsync = async (server) => {
         logger.system("Server provisioned", { serverId: id, dockerVersion: finalCheck.stdout.trim() });
 
         await createTask("UpdateContainers", { serverId: id });
+        await createTask("UpdateServerMetrics", { serverId: id });
     } catch (err) {
         logger.error("Provisioning error", { serverId: id, error: err.message });
         await updateServerStatus(id, "error", null, null, err.message);

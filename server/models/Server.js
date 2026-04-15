@@ -63,6 +63,42 @@ module.exports = db.define("servers", {
         type: Sequelize.DATE,
         allowNull: true,
     },
+    cpuUsage: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+    },
+    cpuCores: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+    },
+    memoryUsed: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+    },
+    memoryTotal: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+    },
+    diskUsed: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+    },
+    diskTotal: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+    },
+    osInfo: {
+        type: Sequelize.STRING,
+        allowNull: true,
+    },
+    uptime: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+    },
+    metricsUpdatedAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+    },
     createdAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,

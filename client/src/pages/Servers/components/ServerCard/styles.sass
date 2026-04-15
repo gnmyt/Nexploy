@@ -16,20 +16,22 @@
     transform: translateY(-2px)
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2)
 
+  &.has-metrics
+    gap: 0.625rem
+
   .server-card-header
     display: flex
-    justify-content: center
     align-items: center
-    position: relative
+    gap: 0.75rem
 
     .server-icon-wrapper
-      position: relative
+      flex-shrink: 0
 
       .server-icon
-        width: 3rem
-        height: 3rem
+        width: 2.5rem
+        height: 2.5rem
         background-color: colors.$gray
-        border-radius: 0.625rem
+        border-radius: 0.5rem
         display: flex
         align-items: center
         justify-content: center
@@ -37,8 +39,8 @@
         transition: all 0.2s
 
         svg
-          width: 1.75rem
-          height: 1.75rem
+          width: 1.25rem
+          height: 1.25rem
           color: colors.$subtext
 
         &.active
@@ -55,10 +57,48 @@
           svg
             color: #ef4444
 
+    .server-card-title
+      flex: 1
+      min-width: 0
+      display: flex
+      flex-direction: column
+      gap: 0.2rem
+
+      .server-name
+        margin: 0
+        font-size: 0.9rem
+        color: colors.$white
+        font-weight: 600
+        line-height: 1.2
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+
+      .status-badge
+        font-size: 0.65rem
+        font-weight: 600
+        padding: 0.1rem 0.4rem
+        border-radius: 1rem
+        text-transform: uppercase
+        letter-spacing: 0.025em
+        color: colors.$subtext
+        background-color: colors.$gray
+        width: fit-content
+
+        &.active
+          color: colors.$success
+          background-color: colors.$success-opacity
+
+        &.provisioning
+          color: colors.$warning
+          background-color: colors.$warning-opacity
+
+        &.error
+          color: #ef4444
+          background-color: rgba(239, 68, 68, 0.12)
+
     .menu-button
-      position: absolute
-      top: -0.25rem
-      right: -0.25rem
+      flex-shrink: 0
       width: 1.5rem
       height: 1.5rem
       display: flex
@@ -83,58 +123,92 @@
   &:hover .menu-button
     opacity: 1
 
-  .server-card-content
+  .server-status-message
+    font-size: 0.75rem
+    color: colors.$warning
+    padding: 0 0.25rem
+
+  .server-error-message
+    font-size: 0.75rem
+    color: #ef4444
+    padding: 0 0.25rem
+    max-height: 2.5rem
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .server-metrics
     display: flex
     flex-direction: column
+    gap: 0.5rem
+    padding-top: 0.375rem
+    border-top: 1px solid colors.$dark-gray
+
+    .metric-item
+      display: flex
+      flex-direction: column
+      gap: 0.25rem
+
+      .metric-header
+        display: flex
+        align-items: center
+        justify-content: space-between
+
+        .metric-label
+          display: flex
+          align-items: center
+          gap: 0.35rem
+          font-size: 0.7rem
+          color: colors.$subtext
+          font-weight: 500
+
+          svg
+            width: 0.85rem
+            height: 0.85rem
+
+        .metric-value
+          font-size: 0.7rem
+          color: colors.$white
+          font-weight: 600
+          font-variant-numeric: tabular-nums
+
+      .metric-bar
+        width: 100%
+        height: 4px
+        background-color: colors.$gray
+        border-radius: 2px
+        overflow: hidden
+
+        .metric-bar-fill
+          height: 100%
+          background-color: colors.$primary
+          border-radius: 2px
+          transition: width 0.6s ease
+
+          &.warning
+            background-color: colors.$warning
+
+          &.critical
+            background-color: #ef4444
+
+  .server-card-footer
+    display: flex
     align-items: center
-    gap: 0.375rem
+    justify-content: space-between
+    gap: 0.5rem
+    padding-top: 0.375rem
+    border-top: 1px solid colors.$dark-gray
 
-    .server-name
-      margin: 0
-      font-size: 0.95rem
-      color: colors.$white
-      font-weight: 600
-      line-height: 1.2
-      text-align: center
-
-    .status-badge
-      font-size: 0.7rem
-      font-weight: 600
-      padding: 0.125rem 0.5rem
-      border-radius: 1rem
-      text-transform: uppercase
-      letter-spacing: 0.025em
+    .os-info,
+    .uptime
+      font-size: 0.65rem
       color: colors.$subtext
-      background-color: colors.$gray
-
-      &.active
-        color: colors.$success
-        background-color: rgba(colors.$success, 0.12)
-
-      &.provisioning
-        color: colors.$warning
-        background-color: rgba(colors.$warning, 0.12)
-
-      &.error
-        color: #ef4444
-        background-color: rgba(239, 68, 68, 0.12)
-
-    .server-status-message
-      font-size: 0.75rem
-      color: colors.$warning
-      text-align: center
-      margin-top: 0.25rem
-
-    .server-error-message
-      font-size: 0.75rem
-      color: #ef4444
-      text-align: center
-      margin-top: 0.25rem
-      max-height: 2.5rem
+      white-space: nowrap
       overflow: hidden
       text-overflow: ellipsis
 
-    .server-actions
-      display: flex
-      justify-content: center
-      margin-top: 0.5rem
+    .os-info
+      flex: 1
+      min-width: 0
+
+    .uptime
+      flex-shrink: 0
