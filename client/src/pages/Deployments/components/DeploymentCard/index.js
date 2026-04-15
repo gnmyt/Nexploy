@@ -1,0 +1,1 @@
+export { DeploymentCard as default } from "./DeploymentCard.jsx";
