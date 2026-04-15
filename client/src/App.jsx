@@ -8,7 +8,8 @@ import "@/common/styles/main.sass";
 import { lazy } from "react";
 import Root from "@/common/layouts/Root.jsx";
 
-const Settings = lazy(() => import("@/pages/Settings"));
+const Servers = lazy(() => import("@/pages/Servers"));
+const Containers = lazy(() => import("@/pages/Containers"));
 
 const App = () => {
     const router = createBrowserRouter([
@@ -16,8 +17,9 @@ const App = () => {
             path: "/",
             element: <Root />,
             children: [
-                { path: "/", element: <Navigate to="/settings" /> },
-                { path: "/settings/*", element: <Settings/> },
+                { path: "/", element: <Navigate to="/servers" /> },
+                { path: "/servers/*", element: <Servers/> },
+                { path: "/containers/*", element: <Containers/> },
             ],
         },
     ]);
