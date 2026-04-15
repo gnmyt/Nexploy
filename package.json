@@ -9,31 +9,26 @@
     "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
     "decompress": "^4.2.1",
-    "express": "^5.2.1",
-    "express-jsdoc-swagger": "^1.8.0",
-    "express-ws": "^5.0.2",
+    "hono": "^4.12.14",
     "joi": "^18.1.2",
     "sequelize": "^6.37.8",
     "speakeasy": "^2.0.0",
     "sqlite3": "^6.0.1",
     "ssh2": "^1.17.0",
     "uuid": "^13.0.0",
-    "winston": "^3.18.3",
-    "ws": "^8.20.0"
+    "winston": "^3.18.3"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
     "dotenv": "^17.4.0",
-    "vitepress": "^1.6.4",
-    "vitepress-openapi": "^0.1.19"
+    "vitepress": "^1.6.4"
   },
   "scripts": {
     "dev:server": "bun --watch server/index.js",
     "dev:client": "cd client && bun run dev",
     "dev": "concurrently --kill-others-on-fail \"bun dev:server\" \"bun dev:client\"",
-    "docs:openapi": "bun scripts/generate-openapi.js",
-    "docs:dev": "bun docs:openapi && vitepress dev docs",
-    "docs:build": "bun docs:openapi && vitepress build docs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   }
 }
