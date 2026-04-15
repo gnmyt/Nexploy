@@ -1,6 +1,7 @@
 import "./styles.sass";
 import AppCard from "../../components/AppCard";
 import AppDetailDialog from "../../components/AppDetailDialog";
+import InstallDialog from "../../components/InstallDialog";
 import { useState, useEffect, useCallback, useRef } from "react";
 import IconInput from "@/common/components/IconInput";
 import SelectBox from "@/common/components/SelectBox";
@@ -12,6 +13,8 @@ import { useToast } from "@/common/contexts/ToastContext.jsx";
 export const Store = () => {
     const [selectedApp, setSelectedApp] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [installDialogOpen, setInstallDialogOpen] = useState(false);
+    const [installApp, setInstallApp] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [apps, setApps] = useState([]);
@@ -67,7 +70,12 @@ export const Store = () => {
     };
 
     const handleInstall = (app) => {
-        console.log("Installing app:", app.name);
+        setInstallApp(app);
+        setInstallDialogOpen(true);
+    };
+
+    const handleInstalled = () => {
+        fetchApps(page);
     };
 
     const handlePageChange = (newPage) => {
@@ -144,6 +152,13 @@ export const Store = () => {
                 open={dialogOpen} 
                 onClose={() => setDialogOpen(false)}
                 onInstall={handleInstall}
+            />
+
+            <InstallDialog
+                app={installApp}
+                open={installDialogOpen}
+                onClose={() => setInstallDialogOpen(false)}
+                onInstalled={handleInstalled}
             />
         </>
     );

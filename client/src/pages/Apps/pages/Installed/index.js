@@ -1,0 +1,1 @@
+export { Installed as default } from "./Installed.jsx";
