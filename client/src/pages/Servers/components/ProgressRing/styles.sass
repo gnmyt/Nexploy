@@ -1,0 +1,23 @@
+@use "@/common/styles/colors"
+
+.progress-ring
+  position: relative
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  svg
+    transform: rotate(-90deg)
+    
+    .progress-ring__background
+      color: colors.$gray
+
+    .progress-ring__progress
+      color: colors.$primary
+      transition: stroke-dashoffset 0.5s ease
+
+  .progress-ring__text
+    position: absolute
+    font-size: 0.9rem
+    font-weight: 700
+    color: colors.$white
