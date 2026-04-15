@@ -1,0 +1,140 @@
+@use "@/common/styles/colors"
+
+.server-card
+  background-color: colors.$lighter-background
+  border: 1px solid colors.$dark-gray
+  border-radius: 0.5rem
+  padding: 1rem
+  cursor: pointer
+  transition: all 0.2s
+  display: flex
+  flex-direction: column
+  gap: 0.75rem
+
+  &:hover
+    border-color: colors.$gray
+    transform: translateY(-2px)
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2)
+
+  .server-card-header
+    display: flex
+    justify-content: center
+    align-items: center
+    position: relative
+
+    .server-icon-wrapper
+      position: relative
+
+      .server-icon
+        width: 3rem
+        height: 3rem
+        background-color: colors.$gray
+        border-radius: 0.625rem
+        display: flex
+        align-items: center
+        justify-content: center
+        border: 1.5px solid colors.$dark-gray
+        transition: all 0.2s
+
+        svg
+          width: 1.75rem
+          height: 1.75rem
+          color: colors.$subtext
+
+        &.active
+          background-color: colors.$primary-opacity
+          border-color: colors.$primary
+
+          svg
+            color: colors.$primary
+
+        &.error
+          background-color: rgba(239, 68, 68, 0.1)
+          border-color: #ef4444
+
+          svg
+            color: #ef4444
+
+    .menu-button
+      position: absolute
+      top: -0.25rem
+      right: -0.25rem
+      width: 1.5rem
+      height: 1.5rem
+      display: flex
+      align-items: center
+      justify-content: center
+      border-radius: 0.25rem
+      cursor: pointer
+      opacity: 0
+      transition: opacity 0.2s, background-color 0.2s
+
+      svg
+        width: 1rem
+        height: 1rem
+        color: colors.$subtext
+
+      &:hover
+        background-color: colors.$gray
+
+        svg
+          color: colors.$white
+
+  &:hover .menu-button
+    opacity: 1
+
+  .server-card-content
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 0.375rem
+
+    .server-name
+      margin: 0
+      font-size: 0.95rem
+      color: colors.$white
+      font-weight: 600
+      line-height: 1.2
+      text-align: center
+
+    .status-badge
+      font-size: 0.7rem
+      font-weight: 600
+      padding: 0.125rem 0.5rem
+      border-radius: 1rem
+      text-transform: uppercase
+      letter-spacing: 0.025em
+      color: colors.$subtext
+      background-color: colors.$gray
+
+      &.active
+        color: colors.$success
+        background-color: rgba(colors.$success, 0.12)
+
+      &.provisioning
+        color: colors.$warning
+        background-color: rgba(colors.$warning, 0.12)
+
+      &.error
+        color: #ef4444
+        background-color: rgba(239, 68, 68, 0.12)
+
+    .server-status-message
+      font-size: 0.75rem
+      color: colors.$warning
+      text-align: center
+      margin-top: 0.25rem
+
+    .server-error-message
+      font-size: 0.75rem
+      color: #ef4444
+      text-align: center
+      margin-top: 0.25rem
+      max-height: 2.5rem
+      overflow: hidden
+      text-overflow: ellipsis
+
+    .server-actions
+      display: flex
+      justify-content: center
+      margin-top: 0.5rem
