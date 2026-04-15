@@ -1,0 +1,1 @@
+export { ContainerDetail as default } from "./ContainerDetail";
