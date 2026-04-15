@@ -1,5 +1,6 @@
 const Server = require("../models/Server");
 const Container = require("../models/Container");
+const Stack = require("../models/Stack");
 const { encrypt } = require("../utils/encryption");
 const { sessionManager } = require("../adapters/SessionManager");
 const { createTask } = require("../tasks/taskRunner");
@@ -72,6 +73,7 @@ module.exports.deleteServer = async (id) => {
 
     await sessionManager.closeSession(id);
     await Container.destroy({ where: { serverId: id } });
+    await Stack.destroy({ where: { serverId: id } });
     await Server.destroy({ where: { id } });
 
     logger.system("Server deleted", { serverId: id, name: server.name });
@@ -177,6 +179,7 @@ const provisionServerAsync = async (server) => {
         logger.system("Server provisioned", { serverId: id, dockerVersion: finalCheck.stdout.trim() });
 
         await createTask("UpdateContainers", { serverId: id });
+        await createTask("UpdateStacks", { serverId: id });
         await createTask("UpdateServerMetrics", { serverId: id });
     } catch (err) {
         logger.error("Provisioning error", { serverId: id, error: err.message });

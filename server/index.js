@@ -18,6 +18,7 @@ const userRoutes = require("./routes/users");
 const sessionRoutes = require("./routes/session");
 const serverRoutes = require("./routes/server");
 const containerRoutes = require("./routes/container");
+const stackRoutes = require("./routes/stack");
 const serviceRoutes = require("./routes/service");
 require("./utils/folder");
 
@@ -36,6 +37,7 @@ app.use("/api/sessions/*", authenticate);
 app.route("/api/sessions", sessionRoutes);
 app.route("/api/servers", serverRoutes);
 app.route("/api/containers", containerRoutes);
+app.route("/api/stacks", stackRoutes);
 
 app.route("/api/service", serviceRoutes);
 

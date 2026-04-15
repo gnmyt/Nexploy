@@ -1,6 +1,7 @@
 const { registerTaskHandler, createTask } = require("./taskRunner");
 const updateContainersHandler = require("./handlers/updateContainers");
 const updateServerMetricsHandler = require("./handlers/updateServerMetrics");
+const updateStacksHandler = require("./handlers/updateStacks");
 const logger = require("../utils/logger");
 
 const METRICS_INTERVAL = 60 * 1000;
@@ -8,6 +9,7 @@ const METRICS_INTERVAL = 60 * 1000;
 const initializeTaskHandlers = () => {
     registerTaskHandler("UpdateContainers", updateContainersHandler);
     registerTaskHandler("UpdateServerMetrics", updateServerMetricsHandler);
+    registerTaskHandler("UpdateStacks", updateStacksHandler);
 
     setInterval(() => {
         createTask("UpdateServerMetrics").catch(err => {
