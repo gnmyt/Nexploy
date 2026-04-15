@@ -21,7 +21,10 @@ import {
     mdiFileDocumentOutline,
     mdiTextBox,
     mdiLoading,
-    mdiRocket
+    mdiRocket,
+    mdiPackageVariantClosed,
+    mdiDocker,
+    mdiOpenInNew
 } from "@mdi/js";
 import Button from "@/common/components/Button";
 import IconInput from "@/common/components/IconInput";
@@ -55,6 +58,8 @@ export const StackEditor = () => {
     const [selectedServer, setSelectedServer] = useState("");
     const [stackName, setStackName] = useState("");
     const [creating, setCreating] = useState(false);
+    const [containers, setContainers] = useState([]);
+    const [containersLoading, setContainersLoading] = useState(false);
 
     const isNew = id === "new";
 
@@ -104,6 +109,19 @@ export const StackEditor = () => {
         }
     }, [id, isNew, logsTailLines]);
 
+    const fetchContainers = useCallback(async () => {
+        if (isNew) return;
+        setContainersLoading(true);
+        try {
+            const data = await getRequest(`stacks/${id}/containers`);
+            if (Array.isArray(data)) setContainers(data);
+        } catch {
+            sendToast("Error", "Failed to load containers");
+        } finally {
+            setContainersLoading(false);
+        }
+    }, [id, isNew, sendToast]);
+
     useEffect(() => {
         if (isNew) {
             setComposeContent(DEFAULT_COMPOSE);
@@ -125,7 +143,10 @@ export const StackEditor = () => {
         if (activeTab === "logs" && !isNew) {
             fetchLogs(true);
         }
-    }, [activeTab, isNew, fetchLogs]);
+        if (activeTab === "containers" && !isNew) {
+            fetchContainers();
+        }
+    }, [activeTab, isNew, fetchLogs, fetchContainers]);
 
     useEffect(() => {
         if (!liveMode || activeTab !== "logs" || isNew) return;
@@ -281,6 +302,7 @@ export const StackEditor = () => {
                             <TabSwitcher
                                 tabs={[
                                     { key: "compose", label: "Compose File", icon: mdiFileDocumentOutline },
+                                    { key: "containers", label: "Containers", icon: mdiPackageVariantClosed },
                                     { key: "logs", label: "Logs", icon: mdiTextBox }
                                 ]}
                                 activeTab={activeTab}
@@ -326,6 +348,49 @@ export const StackEditor = () => {
                                     onLiveModeToggle={() => setLiveMode(prev => !prev)}
                                     liveLogs={liveLogs}
                                 />
+                            )}
+
+                            {activeTab === 'containers' && !isNew && (
+                                <div className="stack-containers">
+                                    {containersLoading ? (
+                                        <div className="stack-containers-loading">
+                                            <Icon path={mdiLoading} spin={true} size={1.5} />
+                                        </div>
+                                    ) : containers.length > 0 ? (
+                                        containers.map((c) => (
+                                            <div
+                                                key={c.id}
+                                                className="stack-container-card"
+                                                onClick={() => navigate(`/containers/detail/${c.containerId}`)}
+                                            >
+                                                <div className="stack-container-left">
+                                                    <div className={`stack-container-icon ${c.state?.toLowerCase()}`}>
+                                                        <Icon path={mdiDocker} />
+                                                    </div>
+                                                    <div className="stack-container-details">
+                                                        <div className="stack-container-name-row">
+                                                            <span className="stack-container-name">{c.name}</span>
+                                                            <span className={`stack-container-badge ${c.state?.toLowerCase()}`}>
+                                                                {c.state?.charAt(0).toUpperCase() + c.state?.slice(1)}
+                                                            </span>
+                                                        </div>
+                                                        <span className="stack-container-image">{c.image}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="stack-container-right">
+                                                    <span className="stack-container-status">{c.status}</span>
+                                                    <Icon path={mdiOpenInNew} className="stack-container-link" />
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="stack-containers-empty">
+                                            <Icon path={mdiPackageVariantClosed} size={2} />
+                                            <h3>No containers</h3>
+                                            <p>Start the stack to create containers</p>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
