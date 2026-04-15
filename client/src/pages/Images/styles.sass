@@ -1,0 +1,103 @@
+@use "@/common/styles/colors"
+
+.images-page
+  display: flex
+  flex-direction: column
+  height: 100%
+  overflow: hidden
+
+  .images-header
+    flex-shrink: 0
+    padding: 1.25rem 2rem 1rem
+    background-color: colors.$lighter-background
+    border-bottom: 1px solid colors.$dark-gray
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 2rem
+
+    @media (max-width: 768px)
+      flex-direction: column
+      align-items: flex-start
+      padding: 1rem 1rem 0.75rem
+      gap: 1rem
+
+    .header-content
+      display: flex
+      align-items: center
+      gap: 1rem
+
+      @media (max-width: 768px)
+        width: 100%
+
+      .header-icon
+        width: 3rem
+        height: 3rem
+        background-color: colors.$primary-opacity
+        border-radius: 0.75rem
+        display: flex
+        align-items: center
+        justify-content: center
+        flex-shrink: 0
+
+        @media (max-width: 768px)
+          width: 2.5rem
+          height: 2.5rem
+
+        svg
+          width: 1.75rem
+          height: 1.75rem
+          color: colors.$primary
+
+          @media (max-width: 768px)
+            width: 1.5rem
+            height: 1.5rem
+
+      .header-text
+        flex: 1
+
+        h1
+          margin: 0 0 0.125rem 0
+          font-size: 1.5rem
+          font-weight: 700
+          color: colors.$white
+          line-height: 1.2
+
+          @media (max-width: 768px)
+            font-size: 1.25rem
+
+        p
+          margin: 0
+          font-size: 0.85rem
+          color: colors.$subtext
+          font-weight: 500
+
+          @media (max-width: 768px)
+            font-size: 0.8rem
+
+  .images-content
+    flex: 1
+    overflow-y: auto
+    overflow-x: hidden
+
+    &.has-padding
+      padding: 0 2rem 2rem
+
+      @media (max-width: 768px)
+        padding: 0 1rem 1rem
+
+    &::-webkit-scrollbar
+      width: 8px
+
+      @media (max-width: 768px)
+        width: 6px
+
+    &::-webkit-scrollbar-track
+      background: transparent
+
+    &::-webkit-scrollbar-thumb
+      background-color: colors.$gray
+      border-radius: 10px
+
+      &:hover
+        background-color: colors.$primary-opacity

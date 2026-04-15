@@ -22,6 +22,7 @@ const stackRoutes = require("./routes/stack");
 const serviceRoutes = require("./routes/service");
 const sourceRoutes = require("./routes/source");
 const appsRoutes = require("./routes/apps");
+const imageRoutes = require("./routes/image");
 require("./utils/folder");
 
 process.on("uncaughtException", (err) => errorHandling(err));
@@ -39,6 +40,7 @@ app.use("/api/sessions/*", authenticate);
 app.route("/api/sessions", sessionRoutes);
 app.route("/api/servers", serverRoutes);
 app.route("/api/containers", containerRoutes);
+app.route("/api/images", imageRoutes);
 app.route("/api/stacks", stackRoutes);
 
 app.route("/api/sources", sourceRoutes);

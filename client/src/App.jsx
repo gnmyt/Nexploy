@@ -12,6 +12,7 @@ import Apps from "@/pages/Apps";
 
 const Servers = lazy(() => import("@/pages/Servers"));
 const Containers = lazy(() => import("@/pages/Containers"));
+const Images = lazy(() => import("@/pages/Images"));
 
 const App = () => {
     const router = createBrowserRouter([
@@ -22,6 +23,7 @@ const App = () => {
                 { path: "/", element: <Navigate to="/servers" /> },
                 { path: "/servers/*", element: <Servers/> },
                 { path: "/containers/*", element: <Containers/> },
+                { path: "/images", element: <Images/> },
                 { path: "/stacks/*", element: <Stacks/> },
                 { path: "/apps/*", element: <Apps/> },
             ],

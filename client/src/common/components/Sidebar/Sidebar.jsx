@@ -6,6 +6,7 @@ import {
     mdiServerOutline,
     mdiLayers,
     mdiDocker,
+    mdiCubeOutline,
     mdiAccountCogOutline,
 } from "@mdi/js";
 import { Icon } from "@mdi/react";
@@ -34,6 +35,7 @@ export const Sidebar = () => {
     const navigation = [
         { title: "Servers", path: "/servers", icon: mdiServerOutline },
         { title: "Containers", path: "/containers", icon: mdiDocker },
+        { title: "Images", path: "/images", icon: mdiCubeOutline },
         { title: "Stacks", path: "/stacks", icon: mdiLayers },
         { title: "Apps", path: "/apps", icon: mdiPackageVariant }
     ];
