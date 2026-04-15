@@ -15,13 +15,12 @@ body, html
 
   > *
     min-width: 0
-    flex-shrink: 0
 
   @media (max-width: 768px)
     flex-direction: column
 
 .sidebar
-  width: calc(5rem + 2px)
+  width: 5rem
   flex-shrink: 0
 
   @media (max-width: 768px)
@@ -32,12 +31,10 @@ body, html
   flex: 1
   height: 100vh
   overflow-y: auto
-  margin-left: 5rem
   > *
     height: 100%
 
   @media (max-width: 768px)
-    margin-left: 0
     margin-bottom: 4.5rem
     height: 100vh
     overflow-y: auto
