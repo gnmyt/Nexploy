@@ -7,6 +7,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"
 import "@/common/styles/main.sass";
 import { lazy } from "react";
 import Root from "@/common/layouts/Root.jsx";
+import Stacks from "@/pages/Stacks";
 
 const Servers = lazy(() => import("@/pages/Servers"));
 const Containers = lazy(() => import("@/pages/Containers"));
@@ -20,6 +21,7 @@ const App = () => {
                 { path: "/", element: <Navigate to="/servers" /> },
                 { path: "/servers/*", element: <Servers/> },
                 { path: "/containers/*", element: <Containers/> },
+                { path: "/stacks/*", element: <Stacks/> },
             ],
         },
     ]);
