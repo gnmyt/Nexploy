@@ -1,0 +1,1 @@
+export { InstallDialog as default } from "./InstallDialog.jsx";
