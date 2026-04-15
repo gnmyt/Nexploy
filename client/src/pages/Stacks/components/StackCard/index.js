@@ -1,0 +1,1 @@
+export { StackCard as default } from "./StackCard.jsx";
