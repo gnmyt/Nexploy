@@ -88,8 +88,8 @@ export const Sources = () => {
     };
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.url) {
-            sendToast("Error", "Name and URL are required");
+        if (!formData.url) {
+            sendToast("Error", "URL is required");
             return;
         }
 
