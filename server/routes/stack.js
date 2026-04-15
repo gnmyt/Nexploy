@@ -1,6 +1,6 @@
 const { Hono } = require("hono");
 const { stackActionValidation, stackComposeValidation, stackCreateValidation } = require("../validations/stack");
-const { listStacks, getStack, refreshStacks, stackAction, getStackCompose, updateStackCompose, createStack, deleteStack, getStackLogs } = require("../controllers/stack");
+const { listStacks, getStack, refreshStacks, stackAction, getStackCompose, updateStackCompose, createStack, deleteStack, getStackLogs, getStackContainers } = require("../controllers/stack");
 const { authenticate } = require("../middlewares/auth");
 const { validateSchema } = require("../utils/schema");
 const { upgradeWebSocket } = require("../utils/websocket");
@@ -72,6 +72,13 @@ app.post("/:id/action", authenticate, async (c) => {
 app.delete("/:id", authenticate, async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const result = await deleteStack(id);
+    if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
+    return c.json(result);
+});
+
+app.get("/:id/containers", authenticate, async (c) => {
+    const id = parseInt(c.req.param("id"), 10);
+    const result = await getStackContainers(id);
     if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
     return c.json(result);
 });

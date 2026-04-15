@@ -1,5 +1,6 @@
 const Stack = require("../models/Stack");
 const Server = require("../models/Server");
+const Container = require("../models/Container");
 const { createTask } = require("../tasks/taskRunner");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
@@ -193,6 +194,19 @@ module.exports.deleteStack = async (id) => {
         logger.error("Stack deletion failed", { stackId: id, error: err.message });
         return { code: 504, message: `Failed to delete stack: ${err.message}` };
     }
+};
+
+module.exports.getStackContainers = async (id) => {
+    const stack = await Stack.findByPk(id);
+    if (!stack) return { code: 501, message: "Stack not found" };
+
+    const containers = await Container.findAll({
+        where: { serverId: stack.serverId },
+        order: [["name", "ASC"]],
+    });
+
+    const prefix = `${stack.name}-`;
+    return containers.filter(c => c.name.startsWith(prefix) || c.name === stack.name);
 };
 
 module.exports.getStackLogs = async (id, tail = 100, timestamps = false) => {
