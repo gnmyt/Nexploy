@@ -4,6 +4,8 @@ const Container = require("../models/Container");
 const { createTask } = require("../tasks/taskRunner");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
+const eventBus = require("../utils/eventBus");
+const dockerApi = require("../utils/dockerApi");
 
 module.exports.listStacks = async (serverId = null) => {
     const where = {};
@@ -58,7 +60,7 @@ module.exports.stackAction = async (id, action) => {
         if (result.code !== 0) throw new Error(result.stderr || "Command failed");
 
         if (action === "stop" || action === "down") {
-            const docker = require("../utils/dockerApi")(session);
+            const docker = dockerApi(session);
             const filters = encodeURIComponent(JSON.stringify({ label: [`com.docker.compose.project=${stack.name}`] }));
             try {
                 const orphans = await docker.getJson(`/containers/json?all=true&filters=${filters}`);
@@ -181,7 +183,7 @@ module.exports.deleteStack = async (id) => {
         const composeCmd = `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)}`;
         await session.exec(`${composeCmd} down -v 2>/dev/null; true`, { stream: false });
 
-        const docker = require("../utils/dockerApi")(session);
+        const docker = dockerApi(session);
         const filters = encodeURIComponent(JSON.stringify({ label: [`com.docker.compose.project=${stack.name}`] }));
         try {
             const orphans = await docker.getJson(`/containers/json?all=true&filters=${filters}`);
@@ -195,6 +197,8 @@ module.exports.deleteStack = async (id) => {
 
         await Stack.destroy({ where: { id } });
         logger.info("Stack deleted", { stackId: id, name: stack.name });
+        await eventBus.emit("stacks:updated", { serverId: stack.serverId });
+        await eventBus.emit("containers:updated", { serverId: stack.serverId });
         return { message: "Stack deleted successfully" };
     } catch (err) {
         logger.error("Stack deletion failed", { stackId: id, error: err.message });
@@ -209,7 +213,7 @@ module.exports.getStackContainers = async (id) => {
     const { session, error } = await getSessionForStack(stack);
     if (error) return error;
 
-    const docker = require("../utils/dockerApi")(session);
+    const docker = dockerApi(session);
     const filters = encodeURIComponent(JSON.stringify({ label: [`com.docker.compose.project=${stack.name}`] }));
 
     let dockerContainers;

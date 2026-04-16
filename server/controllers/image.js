@@ -2,6 +2,7 @@ const Server = require("../models/Server");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
 const dockerApi = require("../utils/dockerApi");
+const eventBus = require("../utils/eventBus");
 
 const formatBytes = (bytes) => {
     if (bytes === 0) return "0 B";
@@ -71,6 +72,7 @@ module.exports.pullImage = async (serverId, imageName) => {
         }
 
         logger.info("Image pulled", { serverId: server.id, image: imageName });
+        await eventBus.emit("images:updated", { serverId: server.id });
         return { message: `Successfully pulled ${imageName}` };
     } catch (err) {
         logger.error("Image pull failed", { serverId: server.id, image: imageName, error: err.message });
@@ -90,6 +92,7 @@ module.exports.removeImage = async (serverId, imageId, force = false) => {
         await docker.del(`/images/${encodeURIComponent(imageId)}${forceParam}`);
 
         logger.info("Image removed", { serverId: server.id, imageId });
+        await eventBus.emit("images:updated", { serverId: server.id });
         return { message: "Image removed successfully" };
     } catch (err) {
         logger.error("Image removal failed", { serverId: server.id, imageId, error: err.message });
@@ -111,6 +114,7 @@ module.exports.pruneImages = async (serverId) => {
         const reclaimed = parsed.SpaceReclaimed || 0;
 
         logger.info("Images pruned", { serverId: server.id, deleted, reclaimed });
+        await eventBus.emit("images:updated", { serverId: server.id });
         return {
             message: `Pruned ${deleted} image(s), reclaimed ${formatBytes(reclaimed)}`,
             deleted,

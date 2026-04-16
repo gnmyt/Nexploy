@@ -4,6 +4,7 @@ const { createTask } = require("../tasks/taskRunner");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
 const dockerApi = require("../utils/dockerApi");
+const eventBus = require("../utils/eventBus");
 
 const parseContainer = (container) => {
     if (!container) return null;
@@ -75,6 +76,7 @@ module.exports.removeContainer = async (containerId, force = false) => {
 
         await Container.destroy({ where: { id: container.id } });
         logger.info("Container removed", { containerId: container.containerId });
+        await eventBus.emit("containers:updated", { serverId: server.id });
         return { message: "Container removed successfully" };
     } catch (err) {
         logger.error("Container removal failed", { containerId: container.containerId, error: err.message });
