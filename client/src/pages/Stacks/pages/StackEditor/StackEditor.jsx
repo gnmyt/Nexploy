@@ -32,10 +32,19 @@ import {
     mdiFileCogOutline,
     mdiArrowLeftBold,
     mdiRefresh,
+    mdiDatabaseOutline,
 } from "@mdi/js";
 import Button from "@/common/components/Button";
 import IconInput from "@/common/components/IconInput";
 import ComposerizeDialog from "../../components/ComposerizeDialog";
+import { SqliteBrowser } from "../../components/SqliteBrowser";
+
+const SQLITE_EXTENSIONS = ["db", "sqlite", "sqlite3"];
+
+const isSqliteFile = (filename) => {
+    const ext = filename.split(".").pop()?.toLowerCase();
+    return SQLITE_EXTENSIONS.includes(ext);
+};
 
 const DEFAULT_COMPOSE = `services:
   app:
@@ -666,6 +675,13 @@ export const StackEditor = () => {
                                         <div className="config-loading">
                                             <Icon path={mdiLoading} spin={true} size={1.5} />
                                         </div>
+                                    ) : selectedConfigFile && isSqliteFile(selectedConfigFile.name) ? (
+                                        <SqliteBrowser
+                                            stackId={id}
+                                            file={selectedConfigFile}
+                                            onBack={() => setSelectedConfigFile(null)}
+                                            sendToast={sendToast}
+                                        />
                                     ) : selectedConfigFile ? (
                                         <div className="config-editor">
                                             <div className="config-editor-header">
@@ -731,11 +747,13 @@ export const StackEditor = () => {
                                                     className="config-file-card"
                                                     onClick={() => {
                                                         setSelectedConfigFile(file);
-                                                        fetchConfigFileContent(file.path);
+                                                        if (!isSqliteFile(file.name)) {
+                                                            fetchConfigFileContent(file.path);
+                                                        }
                                                     }}
                                                 >
-                                                    <div className="config-file-icon">
-                                                        <Icon path={mdiFileCogOutline} />
+                                                    <div className={`config-file-icon ${file.type === "sqlite" ? "sqlite" : ""}`}>
+                                                        <Icon path={file.type === "sqlite" ? mdiDatabaseOutline : mdiFileCogOutline} />
                                                     </div>
                                                     <div className="config-file-info">
                                                         <span className="config-file-name">{file.name.split("/").pop()}</span>
@@ -749,7 +767,7 @@ export const StackEditor = () => {
                                         <div className="config-empty">
                                             <Icon path={mdiFileCogOutline} size={2} />
                                             <h3>No configuration files</h3>
-                                            <p>No .json, .yml, .yaml, .toml, .ini, .conf, .cfg, .properties, or .xml files were found in the stack directory</p>
+                                            <p>No configuration or database files were found in the stack directory</p>
                                         </div>
                                     )}
                                 </div>

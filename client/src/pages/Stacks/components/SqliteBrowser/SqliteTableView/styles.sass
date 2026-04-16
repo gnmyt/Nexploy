@@ -1,0 +1,33 @@
+@use "@/common/styles/colors"
+
+.sqlite-table-view
+  display: flex
+  flex-direction: column
+  height: 100%
+  overflow: hidden
+
+  .sqlite-table-view-header
+    display: flex
+    align-items: center
+    gap: 0.75rem
+    padding: 0.75rem 1rem
+    border-bottom: 1px solid colors.$dark-gray
+    flex-shrink: 0
+
+    .sqlite-table-title
+      font-size: 0.9rem
+      color: colors.$white
+      font-weight: 700
+      font-family: "JetBrains Mono", "Fira Code", monospace
+
+    .sqlite-table-count
+      font-size: 0.75rem
+      color: colors.$subtext
+      font-weight: 500
+
+  .sqlite-paginated-table
+    flex: 1
+    min-height: 0
+    border: none
+    border-radius: 0
+    box-shadow: none

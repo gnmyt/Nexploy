@@ -1,0 +1,109 @@
+@use "@/common/styles/colors"
+
+.sqlite-query-executor
+  display: flex
+  flex-direction: column
+  height: 100%
+  overflow: hidden
+
+  .query-input-area
+    padding: 1rem
+    border-bottom: 1px solid colors.$dark-gray
+    flex-shrink: 0
+
+    .query-textarea
+      width: 100%
+      min-height: 80px
+      max-height: 200px
+      padding: 0.75rem
+      background-color: colors.$background
+      border: 1px solid colors.$dark-gray
+      border-radius: 0.5rem
+      color: colors.$white
+      font-size: 0.85rem
+      font-family: "JetBrains Mono", "Fira Code", monospace
+      resize: vertical
+      outline: none
+      transition: border-color 0.2s
+      box-sizing: border-box
+
+      &::placeholder
+        color: colors.$gray
+
+      &:focus
+        border-color: colors.$primary
+
+    .query-actions
+      display: flex
+      align-items: center
+      justify-content: space-between
+      margin-top: 0.5rem
+
+      .query-hint
+        font-size: 0.7rem
+        color: colors.$subtext
+        font-weight: 500
+
+  .query-error
+    display: flex
+    align-items: flex-start
+    gap: 0.5rem
+    padding: 0.75rem 1rem
+    margin: 0.75rem 1rem 0
+    background-color: colors.$error-opacity
+    border: 1px solid colors.$error
+    border-radius: 0.375rem
+    flex-shrink: 0
+
+    svg
+      width: 1rem
+      height: 1rem
+      color: colors.$error
+      flex-shrink: 0
+      margin-top: 0.125rem
+
+    span
+      font-size: 0.8rem
+      color: colors.$error
+      font-family: "JetBrains Mono", "Fira Code", monospace
+      word-break: break-word
+
+  .query-success
+    display: flex
+    align-items: center
+    gap: 0.5rem
+    padding: 0.75rem 1rem
+    margin: 0.75rem 1rem 0
+    background-color: colors.$success-opacity
+    border: 1px solid colors.$success
+    border-radius: 0.375rem
+    flex-shrink: 0
+
+    svg
+      width: 1rem
+      height: 1rem
+      color: colors.$success
+      flex-shrink: 0
+
+    span
+      font-size: 0.8rem
+      color: colors.$success
+
+  .query-result
+    flex: 1
+    display: flex
+    flex-direction: column
+    overflow: hidden
+
+    .sqlite-paginated-table
+      margin: 0.75rem 1rem 0
+      border: none
+      box-shadow: none
+      min-height: auto
+
+    .query-row-count
+      padding: 0.5rem 1rem
+      font-size: 0.7rem
+      color: colors.$subtext
+      font-weight: 500
+      flex-shrink: 0
