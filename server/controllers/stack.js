@@ -140,7 +140,7 @@ module.exports.createStack = async (serverId, name, composeContent) => {
     if (existing) return { code: 505, message: "A stack with this name already exists on this server" };
 
     const session = await sessionManager.getOrCreateSession(server);
-    const directory = `/opt/nexployed-apps/${name}`;
+    const directory = `/opt/nexploy/apps/${name}`;
     const configFile = "docker-compose.yml";
 
     try {

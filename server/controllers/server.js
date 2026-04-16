@@ -185,7 +185,7 @@ const provisionServerAsync = async (server) => {
 
         await updateServerStatus(id, "provisioning", 60, "Creating app directory...");
 
-        const mkdirResult = await session.exec("mkdir -p /opt/nexployed-apps && chmod 755 /opt/nexployed-apps");
+        const mkdirResult = await session.exec("mkdir -p /opt/nexploy/apps && chmod 755 /opt/nexploy");
         if (mkdirResult.code !== 0) throw new Error(`Failed to create app directory: ${mkdirResult.stderr}`);
 
         await updateServerStatus(id, "provisioning", 65, "Installing sqlite3...");

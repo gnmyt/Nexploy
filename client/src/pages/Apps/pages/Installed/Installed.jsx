@@ -1,5 +1,4 @@
 import "./styles.sass";
-import AppDetailDialog from "../../components/AppDetailDialog";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Icon } from "@mdi/react";
 import { mdiUpdate, mdiPackageVariantClosed, mdiMagnify, mdiChevronRight, mdiLoading, mdiServer, mdiDelete } from "@mdi/js";
@@ -8,10 +7,11 @@ import IconInput from "@/common/components/IconInput";
 import { getRequest, postRequest, deleteRequest } from "@/common/utils/RequestUtil.js";
 import { useToast } from "@/common/contexts/ToastContext.jsx";
 import AppIcon from "../../components/AppIcon";
+import ManageDialog from "../../components/ManageDialog";
 
 export const Installed = () => {
-    const [selectedApp, setSelectedApp] = useState(null);
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedInstanceId, setSelectedInstanceId] = useState(null);
+    const [manageOpen, setManageOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [installedApps, setInstalledApps] = useState([]);
     const [servers, setServers] = useState({});
@@ -79,8 +79,8 @@ export const Installed = () => {
     }, [searchQuery, flatInstances]);
 
     const handleViewDetails = (app) => {
-        setSelectedApp(app);
-        setDialogOpen(true);
+        setSelectedInstanceId(app.instanceId);
+        setManageOpen(true);
     };
 
     const handleUpdate = async (app) => {
@@ -267,11 +267,11 @@ export const Installed = () => {
                 </div>
             </div>
 
-            <AppDetailDialog 
-                app={selectedApp} 
-                open={dialogOpen} 
-                onClose={() => setDialogOpen(false)}
-                onInstall={() => {}}
+            <ManageDialog
+                instanceId={selectedInstanceId}
+                open={manageOpen}
+                onClose={() => setManageOpen(false)}
+                onChanged={fetchInstalledApps}
             />
         </>
     );

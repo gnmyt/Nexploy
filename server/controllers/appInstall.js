@@ -7,8 +7,16 @@ const { getApp } = require("./source");
 const logger = require("../utils/logger");
 const fs = require("fs");
 const path = require("path");
+const yaml = require("yaml");
 
 const SOURCES_DIR = path.join(process.cwd(), "data", "sources");
+const resolveRunnerPath = () => {
+    const candidates = [
+        path.join(process.cwd(), "bin", "runner"),
+        path.join(process.cwd(), "runner", "target", "release", "runner"),
+    ];
+    return candidates.find(p => fs.existsSync(p)) || candidates[0];
+};
 const escapeShellArg = (arg) => `'${arg.replace(/'/g, "'\\''")}'`;
 
 const getSessionForServer = async (serverId) => {
@@ -40,7 +48,120 @@ const uploadLogoPng = async (session, directory, sourceName, slug) => {
     );
 };
 
-const installDockerApp = async (serverId, sourceName, slug, appData, parentSlug = null) => {
+const ensureRunner = async (session) => {
+    const check = await session.exec("test -f /opt/nexploy/runner && echo yes", { stream: false });
+    if (check.stdout?.trim() === "yes") return;
+
+    const runnerPath = resolveRunnerPath();
+    if (!fs.existsSync(runnerPath)) {
+        logger.warn("runner binary not found (checked bin/runner and runner/target/release/runner)");
+        return;
+    }
+
+    await session.exec("mkdir -p /opt/nexploy", { stream: false });
+
+    const binary = fs.readFileSync(runnerPath);
+    const chunkSize = 65536;
+    const totalChunks = Math.ceil(binary.length / chunkSize);
+
+    await session.exec("cat /dev/null > /opt/nexploy/runner", { stream: false });
+    for (let i = 0; i < totalChunks; i++) {
+        const chunk = binary.subarray(i * chunkSize, (i + 1) * chunkSize);
+        const b64 = chunk.toString("base64");
+        await session.exec(`echo '${b64}' | base64 -d >> /opt/nexploy/runner`, { stream: false });
+    }
+    await session.exec("chmod +x /opt/nexploy/runner", { stream: false });
+    logger.info("runner binary uploaded to server");
+};
+
+const executeHook = async (session, directory, sourceName, slug, hookName, appData, configValues = {}) => {
+    if (!appData.hooks || !appData.hooks[hookName]) return null;
+
+    const hookFile = appData.hooks[hookName];
+    const firstLetter = slug.charAt(0).toLowerCase();
+    const hookPath = path.join(SOURCES_DIR, sourceName, firstLetter, slug, "hooks", hookFile);
+
+    if (!fs.existsSync(hookPath)) {
+        logger.warn(`Hook file not found: ${hookPath}`);
+        return null;
+    }
+
+    await ensureRunner(session);
+
+    const scriptContent = fs.readFileSync(hookPath, "utf-8");
+    const scriptB64 = Buffer.from(scriptContent).toString("base64");
+
+    const context = {
+        appName: appData.name,
+        appVersion: appData.version,
+        slug,
+        source: sourceName,
+        directory,
+        hook: hookName,
+        config: configValues,
+    };
+    const contextB64 = Buffer.from(JSON.stringify(context)).toString("base64");
+
+    try {
+        const result = await session.exec(
+            `/opt/nexploy/runner --script ${escapeShellArg(scriptB64)} --context ${escapeShellArg(contextB64)} --path ${escapeShellArg(directory)}`,
+            { stream: false }
+        );
+
+        if (result.code !== 0) {
+            logger.warn(`Hook ${hookName} for ${slug} exited with code ${result.code}`, { stderr: result.stderr, stdout: result.stdout });
+        } else {
+            logger.info(`Hook ${hookName} executed for ${slug}`, { stdout: result.stdout?.substring(0, 500) });
+        }
+
+        return { code: result.code, stdout: result.stdout, stderr: result.stderr };
+    } catch (err) {
+        logger.error(`Hook ${hookName} failed for ${slug}`, { error: err.message });
+        return { code: -1, error: err.message };
+    }
+};
+
+const applyPortMappings = (composeContent, mainService, portMappings) => {
+    if (!portMappings || !Array.isArray(portMappings) || portMappings.length === 0) return composeContent;
+
+    const doc = yaml.parseDocument(composeContent);
+    const services = doc.get("services");
+    if (!services) return composeContent;
+
+    const service = services.get(mainService);
+    if (!service) return composeContent;
+
+    const portsNode = service.get("ports");
+    if (!portsNode) return composeContent;
+
+    const newPorts = portMappings.map(pm => `${pm.host}:${pm.container}`);
+    service.set("ports", newPorts);
+
+    return doc.toString();
+};
+
+const parsePortsFromCompose = (composeContent, mainService) => {
+    try {
+        const doc = yaml.parse(composeContent);
+        const service = doc?.services?.[mainService];
+        if (!service?.ports) return [];
+
+        return service.ports.map(p => {
+            const str = String(p);
+            const match = str.match(/^(?:(\d+):)?(\d+)(?:\/(\w+))?$/);
+            if (!match) return null;
+            return {
+                host: match[1] ? parseInt(match[1]) : parseInt(match[2]),
+                container: parseInt(match[2]),
+                protocol: match[3] || "tcp",
+            };
+        }).filter(Boolean);
+    } catch {
+        return [];
+    }
+};
+
+const installDockerApp = async (serverId, sourceName, slug, appData, parentSlug = null, userInputs = {}, portMappings = null) => {
     const { session, server, error } = await getSessionForServer(serverId);
     if (error) return error;
 
@@ -54,10 +175,14 @@ const installDockerApp = async (serverId, sourceName, slug, appData, parentSlug 
     if (!fs.existsSync(composePath)) {
         return { code: 504, message: `No docker-compose.yml found for ${slug}` };
     }
-    const composeContent = fs.readFileSync(composePath, "utf-8");
+    let composeContent = fs.readFileSync(composePath, "utf-8");
+
+    if (portMappings && appData.mainService) {
+        composeContent = applyPortMappings(composeContent, appData.mainService, portMappings);
+    }
 
     const stackName = `nexploy-${slug}`;
-    const directory = `/opt/nexployed-apps/${stackName}`;
+    const directory = `/opt/nexploy/apps/${stackName}`;
     const configFile = "docker-compose.yml";
 
     const existingStack = await Stack.findOne({ where: { name: stackName, serverId } });
@@ -114,7 +239,18 @@ const installDockerApp = async (serverId, sourceName, slug, appData, parentSlug 
             name: appData.name,
             category: appData.category || null,
             parentSlug,
+            config: Object.keys(userInputs).length > 0 ? JSON.stringify(userInputs) : null,
         });
+
+        await executeHook(session, directory, sourceName, slug, "postInstall", appData, userInputs);
+
+        const restartResult = await session.exec(
+            `cd ${escapeShellArg(directory)} && docker compose -f ${configFile} up -d --remove-orphans`,
+            { stream: false }
+        );
+        if (restartResult.code !== 0) {
+            logger.warn(`Post-hook restart had warnings for ${slug}`, { stderr: restartResult.stderr });
+        }
 
         await createTask("UpdateStacks", { serverId });
 
@@ -174,12 +310,12 @@ const installBundleApp = async (serverId, sourceName, slug, appData) => {
     };
 };
 
-module.exports.installApp = async (sourceName, slug, serverId) => {
+module.exports.installApp = async (sourceName, slug, serverId, userInputs = {}, portMappings = null) => {
     const appData = await getApp(sourceName, slug);
     if (!appData) return { code: 404, message: "App not found" };
 
     if (appData.type === "docker") {
-        return installDockerApp(serverId, sourceName, slug, appData);
+        return installDockerApp(serverId, sourceName, slug, appData, null, userInputs, portMappings);
     } else if (appData.type === "bundle") {
         return installBundleApp(serverId, sourceName, slug, appData);
     }
@@ -255,6 +391,9 @@ module.exports.updateApp = async (installedAppId) => {
             { version: appData.version, updateAvailable: null },
             { where: { id: installedAppId } }
         );
+
+        await executeHook(session, stack.directory, installed.source, installed.slug, "postUpdate", appData,
+            installed.config ? JSON.parse(installed.config) : {});
 
         await createTask("UpdateStacks", { serverId: installed.serverId });
 
@@ -337,4 +476,121 @@ module.exports.getInstalledApp = async (id) => {
     const app = await InstalledApp.findByPk(id);
     if (!app) return { code: 404, message: "Installed app not found" };
     return app;
+};
+
+module.exports.getInstalledAppDetails = async (id) => {
+    const installed = await InstalledApp.findByPk(id);
+    if (!installed) return { code: 404, message: "Installed app not found" };
+
+    const appData = await getApp(installed.source, installed.slug);
+
+    const stack = installed.stackId ? await Stack.findByPk(installed.stackId) : null;
+
+    const configValues = installed.config ? JSON.parse(installed.config) : {};
+
+    const firstLetter = installed.slug.charAt(0).toLowerCase();
+    const composePath = path.join(SOURCES_DIR, installed.source, firstLetter, installed.slug, "docker-compose.yml");
+    let ports = [];
+    if (fs.existsSync(composePath) && appData?.mainService) {
+        const composeContent = fs.readFileSync(composePath, "utf-8");
+        ports = parsePortsFromCompose(composeContent, appData.mainService);
+    }
+
+    return {
+        id: installed.id,
+        slug: installed.slug,
+        source: installed.source,
+        serverId: installed.serverId,
+        stackId: installed.stackId,
+        version: installed.version,
+        name: installed.name,
+        type: installed.type,
+        category: installed.category,
+        updateAvailable: installed.updateAvailable,
+        installedAt: installed.installedAt,
+        hasLogo: true,
+        config: configValues,
+        inputs: appData?.inputs || [],
+        hooks: appData?.hooks || {},
+        ports,
+        mainService: appData?.mainService || null,
+        description: appData?.description || null,
+        stack: stack ? { id: stack.id, name: stack.name, status: stack.status, services: stack.services } : null,
+    };
+};
+
+module.exports.updateInstalledAppConfig = async (id, newConfig) => {
+    const installed = await InstalledApp.findByPk(id);
+    if (!installed) return { code: 404, message: "Installed app not found" };
+
+    const appData = await getApp(installed.source, installed.slug);
+
+    await InstalledApp.update(
+        { config: JSON.stringify(newConfig) },
+        { where: { id } }
+    );
+
+    if (appData?.hooks?.onConfigure && installed.stackId) {
+        const stack = await Stack.findByPk(installed.stackId);
+        if (stack) {
+            const { session, error } = await getSessionForServer(installed.serverId);
+            if (!error) {
+                await executeHook(session, stack.directory, installed.source, installed.slug, "onConfigure", appData, newConfig);
+
+                await session.exec(
+                    `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)} up -d --remove-orphans`,
+                    { stream: false }
+                );
+                await createTask("UpdateStacks", { serverId: installed.serverId });
+            }
+        }
+    }
+
+    logger.info(`App config updated: ${installed.name}`, { id });
+    return { message: "Configuration updated successfully" };
+};
+
+module.exports.executeInstalledAppHook = async (id, hookName) => {
+    const installed = await InstalledApp.findByPk(id);
+    if (!installed) return { code: 404, message: "Installed app not found" };
+
+    const appData = await getApp(installed.source, installed.slug);
+    if (!appData) return { code: 404, message: "App no longer available in source" };
+
+    if (!appData.hooks || !appData.hooks[hookName]) {
+        return { code: 400, message: `Hook "${hookName}" not defined for this app` };
+    }
+
+    const stack = installed.stackId ? await Stack.findByPk(installed.stackId) : null;
+    if (!stack) return { code: 504, message: "Associated stack not found" };
+
+    const { session, error } = await getSessionForServer(installed.serverId);
+    if (error) return error;
+
+    const configValues = installed.config ? JSON.parse(installed.config) : {};
+    const result = await executeHook(session, stack.directory, installed.source, installed.slug, hookName, appData, configValues);
+
+    if (!result) return { code: 504, message: "Hook execution failed" };
+
+    return {
+        message: `Hook "${hookName}" executed`,
+        exitCode: result.code,
+        stdout: result.stdout,
+        stderr: result.stderr,
+    };
+};
+
+module.exports.getAppPortAnalysis = async (sourceName, slug) => {
+    const appData = await getApp(sourceName, slug);
+    if (!appData) return { code: 404, message: "App not found" };
+    if (appData.type !== "docker") return { ports: [] };
+
+    const firstLetter = slug.charAt(0).toLowerCase();
+    const composePath = path.join(SOURCES_DIR, sourceName, firstLetter, slug, "docker-compose.yml");
+    if (!fs.existsSync(composePath)) return { ports: [] };
+
+    const composeContent = fs.readFileSync(composePath, "utf-8");
+    const ports = parsePortsFromCompose(composeContent, appData.mainService);
+
+    return { ports, mainService: appData.mainService };
 };

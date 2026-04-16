@@ -1,0 +1,264 @@
+@use "@/common/styles/colors"
+
+.manage-dialog
+  min-width: 520px
+  max-width: 640px
+  max-height: 80vh
+  display: flex
+  flex-direction: column
+
+  @media (max-width: 768px)
+    min-width: 90vw
+
+  .manage-loading
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    padding: 3rem 1rem
+    gap: 1rem
+    color: colors.$subtext
+
+  .manage-header
+    display: flex
+    align-items: center
+    gap: 1rem
+    margin-bottom: 1rem
+    padding-bottom: 1rem
+    border-bottom: 1px solid colors.$dark-gray
+
+    .header-info
+      flex: 1
+      min-width: 0
+
+      h2
+        margin: 0 0 0.25rem 0
+        font-size: 1.25rem
+        font-weight: 700
+        color: colors.$white
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+
+      .header-meta
+        display: flex
+        align-items: center
+        gap: 0.5rem
+        flex-wrap: wrap
+
+        .app-version
+          font-size: 0.8rem
+          color: colors.$subtext
+          font-weight: 500
+
+        .app-category
+          font-size: 0.75rem
+          padding: 0.15rem 0.5rem
+          background: colors.$primary-opacity
+          color: colors.$primary
+          border-radius: 0.25rem
+          font-weight: 600
+
+        .app-status
+          font-size: 0.75rem
+          padding: 0.15rem 0.5rem
+          border-radius: 0.25rem
+          font-weight: 600
+          text-transform: capitalize
+
+          &.status-running
+            background: colors.$success-opacity
+            color: colors.$success
+
+          &.status-stopped
+            background: colors.$error-opacity
+            color: colors.$error
+
+          &.status-unknown
+            background: colors.$gray
+            color: colors.$subtext
+
+  .manage-actions
+    display: flex
+    gap: 0.5rem
+    flex-wrap: wrap
+    margin-bottom: 1rem
+
+  .manage-tabs
+    margin-bottom: 1rem
+
+  .manage-content
+    flex: 1
+    overflow-y: auto
+
+    .info-card
+      background: colors.$lighter-background
+      border: 1px solid colors.$dark-gray
+      border-radius: 0.75rem
+      padding: 1rem
+      margin-bottom: 0.75rem
+
+      .card-header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        margin-bottom: 0.75rem
+
+        h3
+          margin: 0
+
+      h3
+        margin: 0 0 0.5rem 0
+        font-size: 0.95rem
+        font-weight: 600
+        color: colors.$white
+
+      > p
+        margin: 0
+        font-size: 0.85rem
+        color: colors.$subtext
+        line-height: 1.5
+
+    .overview-tab
+      .details-grid
+        display: grid
+        grid-template-columns: 1fr 1fr
+        gap: 0.4rem
+
+        @media (max-width: 768px)
+          grid-template-columns: 1fr
+
+        .detail-item
+          display: flex
+          justify-content: space-between
+          align-items: center
+          padding: 0.4rem 0.6rem
+          background: colors.$background
+          border-radius: 0.4rem
+
+          .detail-label
+            font-size: 0.8rem
+            color: colors.$subtext
+            font-weight: 500
+
+          .detail-value
+            font-size: 0.8rem
+            color: colors.$white
+            font-weight: 500
+            display: flex
+            align-items: center
+            gap: 0.3rem
+
+            svg
+              width: 0.9rem
+              height: 0.9rem
+              color: colors.$subtext
+
+      .port-list
+        display: flex
+        flex-direction: column
+        gap: 0.3rem
+
+        .port-item
+          display: flex
+          align-items: center
+          gap: 0.5rem
+          padding: 0.35rem 0.6rem
+          background: colors.$background
+          border-radius: 0.4rem
+          font-size: 0.8rem
+
+          .port-host
+            color: colors.$primary
+            font-weight: 600
+            font-family: monospace
+
+          .port-arrow
+            color: colors.$subtext
+
+          .port-container
+            color: colors.$subtext
+            font-family: monospace
+
+    .configure-tab
+      .config-fields
+        display: flex
+        flex-direction: column
+        gap: 0.75rem
+
+        .config-field
+          label
+            display: block
+            font-size: 0.85rem
+            color: colors.$white
+            font-weight: 500
+            margin-bottom: 0.3rem
+
+            .required
+              color: colors.$error
+              margin-left: 0.2rem
+
+          .field-description
+            margin: 0 0 0.3rem 0
+            font-size: 0.8rem
+            color: colors.$subtext
+
+          .field-input
+            width: 100%
+            padding: 0.5rem 0.65rem
+            background-color: colors.$background
+            border: 1px solid colors.$dark-gray
+            border-radius: 0.4rem
+            color: colors.$white
+            font-size: 0.85rem
+            outline: none
+            transition: border-color 0.15s
+            box-sizing: border-box
+            font-family: inherit
+            resize: vertical
+
+            &:focus
+              border-color: colors.$primary
+
+    .hooks-tab
+      .hooks-list
+        display: flex
+        flex-direction: column
+        gap: 0.4rem
+
+        .hook-item
+          display: flex
+          align-items: center
+          justify-content: space-between
+          padding: 0.6rem
+          background: colors.$background
+          border-radius: 0.4rem
+
+          .hook-info
+            display: flex
+            flex-direction: column
+            gap: 0.1rem
+
+            .hook-name
+              font-size: 0.85rem
+              color: colors.$white
+              font-weight: 600
+
+            .hook-file
+              font-size: 0.7rem
+              color: colors.$subtext
+              font-family: monospace
+
+      .hook-output
+        background: colors.$background
+        border: 1px solid colors.$dark-gray
+        border-radius: 0.4rem
+        padding: 0.75rem
+        font-family: monospace
+        font-size: 0.8rem
+        color: colors.$subtext
+        white-space: pre-wrap
+        word-break: break-all
+        max-height: 200px
+        overflow-y: auto
+        margin-top: 0.5rem

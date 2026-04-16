@@ -43,6 +43,10 @@ module.exports = db.define("installed_apps", {
         type: Sequelize.STRING,
         allowNull: true,
     },
+    config: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+    },
     installedAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,

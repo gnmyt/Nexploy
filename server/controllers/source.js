@@ -165,6 +165,16 @@ const syncSource = async (name) => {
                     if (data) fs.writeFileSync(path.join(galleryDir, filename), Buffer.from(data));
                 }
             }
+
+            if (parsed_manifest.hooks && typeof parsed_manifest.hooks === "object") {
+                const hooksDir = path.join(appDir, "hooks");
+                fs.mkdirSync(hooksDir, { recursive: true });
+
+                for (const hookFile of Object.values(parsed_manifest.hooks)) {
+                    const hookData = await fetchAppFile(baseUrl, firstLetter, app.slug, `hooks/${hookFile}`);
+                    if (hookData) fs.writeFileSync(path.join(hooksDir, hookFile), hookData);
+                }
+            }
         }
 
         if (fs.existsSync(sourceDir)) {

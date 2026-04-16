@@ -229,7 +229,7 @@ async function buildAsync(deployment, session) {
 
 async function deployStack(deployment, session, appendLog) {
     const stackName = `deploy-${deployment.name}`;
-    const directory = `/opt/nexployed-apps/${stackName}`;
+    const directory = `/opt/nexploy/apps/${stackName}`;
     const configFile = "docker-compose.yml";
 
     appendLog(`[nexploy] Deploying stack ${stackName}...`);
