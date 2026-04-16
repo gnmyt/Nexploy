@@ -116,6 +116,12 @@ export const ServerDialog = ({ open, onClose, onServerCreated, server = null }) 
                 const updateData = {
                     name,
                     location: location || null,
+                    host,
+                    port: parseInt(port, 10),
+                    username,
+                    authMethod,
+                    ...(password ? (authMethod === "password" ? { password } : {}) : {}),
+                    ...(sshKey ? (authMethod === "ssh-key" ? { sshKey, passphrase: passphrase || null } : {}) : {}),
                 };
                 result = await patchRequest(`servers/${server.id}`, updateData);
                 sendToast("Success", "Server updated successfully");

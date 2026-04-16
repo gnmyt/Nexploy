@@ -61,9 +61,37 @@ module.exports.updateServer = async (id, updates) => {
     const server = await Server.findByPk(id);
     if (!server) return { code: 302, message: "Server not found" };
 
-    const { name, location } = updates;
-    await Server.update({ name, location }, { where: { id } });
-    logger.system("Server updated", { serverId: id, updates: { name, location } });
+    const { name, location, host, port, username, authMethod, password, sshKey, passphrase } = updates;
+
+    const updateFields = {};
+    if (name !== undefined) updateFields.name = name;
+    if (location !== undefined) updateFields.location = location;
+    if (host !== undefined) updateFields.host = host;
+    if (port !== undefined) updateFields.port = port;
+    if (username !== undefined) updateFields.username = username;
+    if (authMethod !== undefined) updateFields.authMethod = authMethod;
+
+    if (password) {
+        updateFields.credentials = JSON.stringify(encrypt(password));
+    } else if (sshKey) {
+        updateFields.credentials = JSON.stringify(encrypt(sshKey));
+    }
+
+    if (passphrase !== undefined) {
+        updateFields.passphrase = passphrase ? JSON.stringify(encrypt(passphrase)) : null;
+    }
+
+    if (host !== undefined || port !== undefined) {
+        const checkHost = host || server.host;
+        const checkPort = port || server.port;
+        const existing = await Server.findOne({ where: { host: checkHost, port: checkPort } });
+        if (existing && existing.id !== id) {
+            return { code: 301, message: "A server with this host and port already exists" };
+        }
+    }
+
+    await Server.update(updateFields, { where: { id } });
+    logger.system("Server updated", { serverId: id, updates: Object.keys(updateFields) });
     return { message: "Server updated successfully" };
 };
 
