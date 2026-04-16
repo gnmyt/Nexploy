@@ -1,6 +1,6 @@
 const { Hono } = require("hono");
-const { stackActionValidation, stackComposeValidation, stackCreateValidation, stackEnvValidation, stackConfigFileValidation } = require("../validations/stack");
-const { listStacks, getStack, refreshStacks, stackAction, getStackCompose, updateStackCompose, createStack, deleteStack, getStackLogs, getStackContainers, getStackEnv, updateStackEnv, getStackConfigFiles, getStackConfigFile, updateStackConfigFile } = require("../controllers/stack");
+const { stackActionValidation, stackComposeValidation, stackCreateValidation, stackEnvValidation, stackConfigFileValidation, stackSqliteQueryValidation } = require("../validations/stack");
+const { listStacks, getStack, refreshStacks, stackAction, getStackCompose, updateStackCompose, createStack, deleteStack, getStackLogs, getStackContainers, getStackEnv, updateStackEnv, getStackConfigFiles, getStackConfigFile, updateStackConfigFile, getSqliteTables, getSqliteTableData, executeSqliteQuery } = require("../controllers/stack");
 const { authenticate } = require("../middlewares/auth");
 const { isAdmin } = require("../middlewares/permission");
 const { validateSchema } = require("../utils/schema");
@@ -159,6 +159,37 @@ app.put("/:id/config-file", authenticate, requireResourceAccess("stack", "id", "
     if (error) return c.json({ message: error }, 400);
 
     const result = await updateStackConfigFile(id, body.path, body.content);
+    if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
+    return c.json(result);
+});
+
+app.get("/:id/sqlite/tables", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
+    const id = parseInt(c.req.param("id"), 10);
+    const filePath = c.req.query("path");
+    if (!filePath) return c.json({ message: "path query parameter required" }, 400);
+    const result = await getSqliteTables(id, filePath);
+    if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
+    return c.json(result);
+});
+
+app.get("/:id/sqlite/table", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
+    const id = parseInt(c.req.param("id"), 10);
+    const filePath = c.req.query("path");
+    const table = c.req.query("table");
+    const page = parseInt(c.req.query("page"), 10) || 1;
+    const pageSize = Math.min(parseInt(c.req.query("pageSize"), 10) || 50, 200);
+    if (!filePath || !table) return c.json({ message: "path and table query parameters required" }, 400);
+    const result = await getSqliteTableData(id, filePath, table, page, pageSize);
+    if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
+    return c.json(result);
+});
+
+app.post("/:id/sqlite/query", authenticate, requireResourceAccess("stack", "id", "manage"), async (c) => {
+    const id = parseInt(c.req.param("id"), 10);
+    const body = await c.req.json();
+    const error = validateSchema(stackSqliteQueryValidation, body);
+    if (error) return c.json({ message: error }, 400);
+    const result = await executeSqliteQuery(id, body.path, body.query);
     if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
     return c.json(result);
 });

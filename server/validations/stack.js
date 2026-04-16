@@ -13,6 +13,11 @@ module.exports.stackConfigFileValidation = Joi.object({
     content: Joi.string().min(0).max(1048576).required(),
 });
 
+module.exports.stackSqliteQueryValidation = Joi.object({
+    path: Joi.string().min(1).max(4096).required(),
+    query: Joi.string().min(1).max(10000).required(),
+});
+
 module.exports.stackCreateValidation = Joi.object({
     serverId: Joi.number().integer().positive().required(),
     name: Joi.string().min(1).max(100).pattern(/^[a-zA-Z0-9_-]+$/).required(),

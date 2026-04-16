@@ -318,8 +318,48 @@ module.exports.updateStackEnv = async (id, variables) => {
 };
 
 const CONFIG_EXTENSIONS = ["json", "yml", "yaml", "toml", "ini", "conf", "cfg", "properties", "xml"];
+const SQLITE_EXTENSIONS = ["db", "sqlite", "sqlite3"];
+const ALL_DISCOVERABLE_EXTENSIONS = [...CONFIG_EXTENSIONS, ...SQLITE_EXTENSIONS];
 const MAX_CONFIG_FILES = 10;
 const MAX_CONFIG_SIZE = 1048576; // 1MB
+
+const getVolumeMountPaths = async (session, stack) => {
+    try {
+        const composePath = stack.configFile.startsWith("/")
+            ? stack.configFile
+            : `${stack.directory}/${stack.configFile}`;
+
+        const result = await session.exec(
+            `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(composePath)} config 2>/dev/null | grep -E '^\\s+source:\\s' | sed 's/^.*source:\\s*//' | sort -u`,
+            { stream: false }
+        );
+
+        if (result.code !== 0 || !result.stdout) return [];
+
+        return result.stdout
+            .split("\n")
+            .map(p => p.trim())
+            .filter(p => p && p.startsWith("/"))
+            .filter(p => !p.includes(".."));
+    } catch {
+        return [];
+    }
+};
+
+const getStackAllowedPaths = async (session, stack) => {
+    const paths = [stack.directory];
+    const volumePaths = await getVolumeMountPaths(session, stack);
+    for (const vp of volumePaths) {
+        if (!vp.startsWith(stack.directory + "/") && vp !== stack.directory) {
+            paths.push(vp);
+        }
+    }
+    return paths;
+};
+
+const isPathAllowed = (allowedPaths, filePath) => {
+    return allowedPaths.some(base => filePath.startsWith(base + "/") || filePath === base);
+};
 
 module.exports.getStackConfigFiles = async (id) => {
     const stack = await Stack.findByPk(id);
@@ -329,10 +369,13 @@ module.exports.getStackConfigFiles = async (id) => {
     if (error) return error;
 
     try {
-        const extPattern = CONFIG_EXTENSIONS.map(e => `-name "*.${e}"`).join(" -o ");
+        const allowedPaths = await getStackAllowedPaths(session, stack);
+        const extPattern = ALL_DISCOVERABLE_EXTENSIONS.map(e => `-name "*.${e}"`).join(" -o ");
         const IGNORED_NAMES = ["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml", ".nexploy.json"];
         const ignorePattern = IGNORED_NAMES.map(n => `! -name ${escapeShellArg(n)}`).join(" ");
-        const cmd = `find ${escapeShellArg(stack.directory)} -maxdepth 5 -type f \\( ${extPattern} \\) ${ignorePattern} ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/vendor/*' 2>/dev/null | head -n ${MAX_CONFIG_FILES}`;
+
+        const searchPaths = allowedPaths.map(p => escapeShellArg(p)).join(" ");
+        const cmd = `find ${searchPaths} -maxdepth 5 -type f \\( ${extPattern} \\) ${ignorePattern} ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/vendor/*' 2>/dev/null | head -n ${MAX_CONFIG_FILES}`;
 
         const result = await session.exec(cmd, { stream: false });
         if (result.code !== 0 && !result.stdout) return { files: [] };
@@ -341,10 +384,17 @@ module.exports.getStackConfigFiles = async (id) => {
             .split("\n")
             .map(f => f.trim())
             .filter(Boolean)
-            .map(fullPath => ({
-                path: fullPath,
-                name: fullPath.replace(stack.directory + "/", ""),
-            }));
+            .map(fullPath => {
+                const ext = fullPath.split(".").pop()?.toLowerCase();
+                const relativeName = fullPath.startsWith(stack.directory + "/")
+                    ? fullPath.replace(stack.directory + "/", "")
+                    : fullPath;
+                return {
+                    path: fullPath,
+                    name: relativeName,
+                    type: SQLITE_EXTENSIONS.includes(ext) ? "sqlite" : "config",
+                };
+            });
 
         return { files };
     } catch (err) {
@@ -356,10 +406,6 @@ module.exports.getStackConfigFile = async (id, filePath) => {
     const stack = await Stack.findByPk(id);
     if (!stack) return { code: 501, message: "Stack not found" };
 
-    if (!filePath.startsWith(stack.directory + "/")) {
-        return { code: 503, message: "Access denied: file is outside stack directory" };
-    }
-
     const ext = filePath.split(".").pop()?.toLowerCase();
     if (!CONFIG_EXTENSIONS.includes(ext)) {
         return { code: 503, message: "File type not allowed" };
@@ -367,6 +413,11 @@ module.exports.getStackConfigFile = async (id, filePath) => {
 
     const { session, error } = await getSessionForStack(stack);
     if (error) return error;
+
+    const allowedPaths = await getStackAllowedPaths(session, stack);
+    if (!isPathAllowed(allowedPaths, filePath)) {
+        return { code: 503, message: "Access denied: file is outside stack directory and volumes" };
+    }
 
     try {
         const sizeResult = await session.exec(`stat -c%s ${escapeShellArg(filePath)} 2>/dev/null`, { stream: false });
@@ -386,10 +437,6 @@ module.exports.updateStackConfigFile = async (id, filePath, content) => {
     const stack = await Stack.findByPk(id);
     if (!stack) return { code: 501, message: "Stack not found" };
 
-    if (!filePath.startsWith(stack.directory + "/")) {
-        return { code: 503, message: "Access denied: file is outside stack directory" };
-    }
-
     const ext = filePath.split(".").pop()?.toLowerCase();
     if (!CONFIG_EXTENSIONS.includes(ext)) {
         return { code: 503, message: "File type not allowed" };
@@ -397,6 +444,11 @@ module.exports.updateStackConfigFile = async (id, filePath, content) => {
 
     const { session, error } = await getSessionForStack(stack);
     if (error) return error;
+
+    const allowedPaths = await getStackAllowedPaths(session, stack);
+    if (!isPathAllowed(allowedPaths, filePath)) {
+        return { code: 503, message: "Access denied: file is outside stack directory and volumes" };
+    }
 
     try {
         const escaped = content.replace(/'/g, "'\\''");
@@ -410,6 +462,135 @@ module.exports.updateStackConfigFile = async (id, filePath, content) => {
         return { message: "Config file updated successfully" };
     } catch (err) {
         return { code: 504, message: `Failed to update config file: ${err.message}` };
+    }
+};
+
+const validateSqlitePath = (allowedPaths, filePath) => {
+    if (!isPathAllowed(allowedPaths, filePath)) {
+        return { code: 503, message: "Access denied: file is outside stack directory and volumes" };
+    }
+    const ext = filePath.split(".").pop()?.toLowerCase();
+    if (!SQLITE_EXTENSIONS.includes(ext)) {
+        return { code: 503, message: "Not a SQLite file" };
+    }
+    return null;
+};
+
+module.exports.getSqliteTables = async (id, filePath) => {
+    const stack = await Stack.findByPk(id);
+    if (!stack) return { code: 501, message: "Stack not found" };
+
+    const { session, error } = await getSessionForStack(stack);
+    if (error) return error;
+
+    const allowedPaths = await getStackAllowedPaths(session, stack);
+    const pathError = validateSqlitePath(allowedPaths, filePath);
+    if (pathError) return pathError;
+
+    try {
+        const result = await session.exec(
+            `sqlite3 ${escapeShellArg(filePath)} ".tables"`,
+            { stream: false }
+        );
+        if (result.code !== 0) throw new Error(result.stderr || "Failed to list tables");
+
+        const tables = (result.stdout || "")
+            .split(/\s+/)
+            .map(t => t.trim())
+            .filter(Boolean);
+
+        return { tables };
+    } catch (err) {
+        return { code: 504, message: `Failed to list tables: ${err.message}` };
+    }
+};
+
+module.exports.getSqliteTableData = async (id, filePath, table, page = 1, pageSize = 50) => {
+    const stack = await Stack.findByPk(id);
+    if (!stack) return { code: 501, message: "Stack not found" };
+
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(table)) {
+        return { code: 503, message: "Invalid table name" };
+    }
+
+    const { session, error } = await getSessionForStack(stack);
+    if (error) return error;
+
+    const allowedPaths = await getStackAllowedPaths(session, stack);
+    const pathError = validateSqlitePath(allowedPaths, filePath);
+    if (pathError) return pathError;
+
+    try {
+        const offset = (page - 1) * pageSize;
+
+        const countResult = await session.exec(
+            `sqlite3 ${escapeShellArg(filePath)} "SELECT COUNT(*) FROM \\"${table}\\";"`,
+            { stream: false }
+        );
+        if (countResult.code !== 0) throw new Error(countResult.stderr || "Failed to count rows");
+        const total = parseInt(countResult.stdout?.trim(), 10) || 0;
+
+        const columnsResult = await session.exec(
+            `sqlite3 -json ${escapeShellArg(filePath)} "PRAGMA table_info(\\"${table}\\");"`,
+            { stream: false }
+        );
+        if (columnsResult.code !== 0) throw new Error(columnsResult.stderr || "Failed to get columns");
+        const columns = JSON.parse(columnsResult.stdout || "[]").map(c => ({
+            name: c.name,
+            type: c.type,
+            notnull: c.notnull === 1,
+            pk: c.pk === 1,
+        }));
+
+        const dataResult = await session.exec(
+            `sqlite3 -json ${escapeShellArg(filePath)} "SELECT * FROM \\"${table}\\" LIMIT ${parseInt(pageSize)} OFFSET ${parseInt(offset)};"`,
+            { stream: false }
+        );
+        if (dataResult.code !== 0) throw new Error(dataResult.stderr || "Failed to query data");
+        const rows = JSON.parse(dataResult.stdout || "[]");
+
+        return { columns, rows, total, page, pageSize };
+    } catch (err) {
+        return { code: 504, message: `Failed to query table: ${err.message}` };
+    }
+};
+
+module.exports.executeSqliteQuery = async (id, filePath, query) => {
+    const stack = await Stack.findByPk(id);
+    if (!stack) return { code: 501, message: "Stack not found" };
+
+    const { session, error } = await getSessionForStack(stack);
+    if (error) return error;
+
+    const allowedPaths = await getStackAllowedPaths(session, stack);
+    const pathError = validateSqlitePath(allowedPaths, filePath);
+    if (pathError) return pathError;
+
+    try {
+        const escaped = query.replace(/'/g, "'\\''");
+        const result = await session.exec(
+            `sqlite3 -json ${escapeShellArg(filePath)} '${escaped}'`,
+            { stream: false }
+        );
+
+        if (result.code !== 0) {
+            return { code: 504, message: result.stderr?.trim() || "Query failed" };
+        }
+
+        let rows = [];
+        let columns = [];
+        const output = result.stdout?.trim();
+
+        if (output && output.startsWith("[")) {
+            rows = JSON.parse(output);
+            if (rows.length > 0) {
+                columns = Object.keys(rows[0]).map(name => ({ name, type: "" }));
+            }
+        }
+
+        return { columns, rows, message: rows.length === 0 ? "Query executed successfully" : null };
+    } catch (err) {
+        return { code: 504, message: `Query execution failed: ${err.message}` };
     }
 };
 

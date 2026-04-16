@@ -188,6 +188,37 @@ const provisionServerAsync = async (server) => {
         const mkdirResult = await session.exec("mkdir -p /opt/nexployed-apps && chmod 755 /opt/nexployed-apps");
         if (mkdirResult.code !== 0) throw new Error(`Failed to create app directory: ${mkdirResult.stderr}`);
 
+        await updateServerStatus(id, "provisioning", 65, "Installing sqlite3...");
+
+        const sqliteCheck = await session.exec("which sqlite3", { stream: false });
+        if (sqliteCheck.code !== 0) {
+            const installSqlite = await session.exec(`
+                if command -v apt-get &> /dev/null; then
+                    apt-get update && apt-get install -y sqlite3
+                elif command -v yum &> /dev/null; then
+                    yum install -y sqlite
+                elif command -v dnf &> /dev/null; then
+                    dnf install -y sqlite
+                elif command -v apk &> /dev/null; then
+                    apk add --no-cache sqlite
+                elif command -v pacman &> /dev/null; then
+                    pacman -Sy --noconfirm sqlite
+                elif command -v zypper &> /dev/null; then
+                    zypper install -y sqlite3
+                else
+                    echo "Could not install sqlite3" && exit 1
+                fi
+            `);
+
+            if (installSqlite.code !== 0) {
+                session.addLog("system", "Warning: sqlite3 installation failed, database browsing will be unavailable");
+            } else {
+                session.addLog("system", "sqlite3 installed successfully");
+            }
+        } else {
+            session.addLog("system", "sqlite3 is already installed");
+        }
+
         await updateServerStatus(id, "provisioning", 70, "Verifying Docker socket access...");
 
         const docker = dockerApi(session);
