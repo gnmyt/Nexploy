@@ -280,6 +280,8 @@ const listApps = async ({ page = 1, limit = 24, search, category, type, source: 
         );
     }
 
+    const categories = [...new Set(allApps.map(a => a.category).filter(Boolean))].sort();
+
     if (category && category !== "all") {
         allApps = allApps.filter(a => a.category === category);
     }
@@ -298,8 +300,6 @@ const listApps = async ({ page = 1, limit = 24, search, category, type, source: 
     const totalPages = Math.ceil(total / limit);
     const offset = (page - 1) * limit;
     const apps = allApps.slice(offset, offset + limit);
-
-    const categories = [...new Set(allApps.map(a => a.category).filter(Boolean))].sort();
 
     return { apps, total, page, totalPages, categories };
 };
