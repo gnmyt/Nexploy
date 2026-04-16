@@ -2,6 +2,7 @@ const { Hono } = require("hono");
 const { stackActionValidation, stackComposeValidation, stackCreateValidation, stackEnvValidation } = require("../validations/stack");
 const { listStacks, getStack, refreshStacks, stackAction, getStackCompose, updateStackCompose, createStack, deleteStack, getStackLogs, getStackContainers, getStackEnv, updateStackEnv } = require("../controllers/stack");
 const { authenticate } = require("../middlewares/auth");
+const { isAdmin } = require("../middlewares/permission");
 const { validateSchema } = require("../utils/schema");
 const { upgradeWebSocket } = require("../utils/websocket");
 const Stack = require("../models/Stack");
@@ -10,20 +11,54 @@ const Session = require("../models/Session");
 const Account = require("../models/Account");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
+const { getAccessibleResourceIds, requireResourceAccess, hasResourceAccess } = require("../middlewares/projectAccess");
+const { Op } = require("sequelize");
 
 const app = new Hono();
 
 app.get("/", authenticate, async (c) => {
+    const user = c.get("user");
     const serverId = c.req.query("serverId") ? parseInt(c.req.query("serverId"), 10) : null;
-    return c.json(await listStacks(serverId));
+
+    if (user.role === "admin") {
+        return c.json(await listStacks(serverId));
+    }
+
+    const stackIds = await getAccessibleResourceIds(user.id, "stack");
+    const serverIds = await getAccessibleResourceIds(user.id, "server");
+    const where = {};
+    if (serverId) where.serverId = serverId;
+
+    const allAccessibleIds = [...new Set(stackIds)];
+    if (serverIds.length > 0) {
+        const serverStacks = await Stack.findAll({
+            where: { serverId: { [Op.in]: serverIds } },
+            attributes: ["id"],
+        });
+        serverStacks.forEach(s => allAccessibleIds.push(s.id));
+    }
+
+    if (allAccessibleIds.length === 0) return c.json([]);
+    where.id = { [Op.in]: [...new Set(allAccessibleIds)] };
+
+    const stacks = await Stack.findAll({ where });
+    return c.json(stacks);
 });
 
 app.post("/refresh", authenticate, async (c) => {
+    const user = c.get("user");
     const serverId = c.req.query("serverId") ? parseInt(c.req.query("serverId"), 10) : null;
+
+    if (user.role !== "admin" && serverId) {
+        const hasAccess = await hasResourceAccess(user.id, "server", serverId, "deploy");
+        if (!hasAccess) return c.json({ code: 403, message: "Access denied" }, 403);
+    } else if (user.role !== "admin") {
+        return c.json({ code: 403, message: "Admin access required to refresh all stacks" }, 403);
+    }
     return c.json(await refreshStacks(serverId));
 });
 
-app.post("/", authenticate, async (c) => {
+app.post("/", authenticate, isAdmin, async (c) => {
     const body = await c.req.json();
     const error = validateSchema(stackCreateValidation, body);
     if (error) return c.json({ message: error }, 400);
@@ -33,21 +68,21 @@ app.post("/", authenticate, async (c) => {
     return c.json(result, 201);
 });
 
-app.get("/:id", authenticate, async (c) => {
+app.get("/:id", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const stack = await getStack(id);
     if (stack?.code) return c.json(stack, 404);
     return c.json(stack);
 });
 
-app.get("/:id/compose", authenticate, async (c) => {
+app.get("/:id/compose", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const result = await getStackCompose(id);
     if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
     return c.json(result);
 });
 
-app.put("/:id/compose", authenticate, async (c) => {
+app.put("/:id/compose", authenticate, requireResourceAccess("stack", "id", "manage"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const body = await c.req.json();
     const error = validateSchema(stackComposeValidation, body);
@@ -58,7 +93,7 @@ app.put("/:id/compose", authenticate, async (c) => {
     return c.json(result);
 });
 
-app.post("/:id/action", authenticate, async (c) => {
+app.post("/:id/action", authenticate, requireResourceAccess("stack", "id", "deploy"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const body = await c.req.json();
     const error = validateSchema(stackActionValidation, body);
@@ -69,28 +104,28 @@ app.post("/:id/action", authenticate, async (c) => {
     return c.json(result);
 });
 
-app.delete("/:id", authenticate, async (c) => {
+app.delete("/:id", authenticate, requireResourceAccess("stack", "id", "manage"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const result = await deleteStack(id);
     if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
     return c.json(result);
 });
 
-app.get("/:id/containers", authenticate, async (c) => {
+app.get("/:id/containers", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const result = await getStackContainers(id);
     if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
     return c.json(result);
 });
 
-app.get("/:id/env", authenticate, async (c) => {
+app.get("/:id/env", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const result = await getStackEnv(id);
     if (result?.code) return c.json(result, result.code === 501 ? 404 : 400);
     return c.json(result);
 });
 
-app.put("/:id/env", authenticate, async (c) => {
+app.put("/:id/env", authenticate, requireResourceAccess("stack", "id", "manage"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const body = await c.req.json();
     const error = validateSchema(stackEnvValidation, body);
@@ -101,7 +136,7 @@ app.put("/:id/env", authenticate, async (c) => {
     return c.json(result);
 });
 
-app.get("/:id/logs", authenticate, async (c) => {
+app.get("/:id/logs", authenticate, requireResourceAccess("stack", "id", "view"), async (c) => {
     const id = parseInt(c.req.param("id"), 10);
     const tail = parseInt(c.req.query("tail"), 10) || 100;
     const timestamps = c.req.query("timestamps") === "true";
@@ -125,11 +160,18 @@ app.get("/:id/logs/stream", upgradeWebSocket(async (c) => {
 
         const session = await Session.findOne({ where: { token } });
         if (!session) throw { code: 4401, msg: "Invalid token" };
-        if (!await Account.findByPk(session.accountId)) throw { code: 4401, msg: "Account not found" };
+        const account = await Account.findByPk(session.accountId);
+        if (!account) throw { code: 4401, msg: "Account not found" };
 
         const stackId = parseInt(c.req.param("id"), 10);
         stack = await Stack.findByPk(stackId);
         if (!stack) throw { code: 4404, msg: "Stack not found" };
+
+        if (account.role !== "admin") {
+            const hasAccess = await hasResourceAccess(account.id, "stack", stackId) ||
+                await hasResourceAccess(account.id, "server", stack.serverId);
+            if (!hasAccess) throw { code: 4403, msg: "Access denied" };
+        }
 
         const server = await Server.findByPk(stack.serverId);
         if (!server || server.status !== "active") throw { code: 4400, msg: "Server not available" };

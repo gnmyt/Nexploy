@@ -28,7 +28,26 @@ module.exports.createServerValidation = Joi.object({
 module.exports.updateServerValidation = Joi.object({
     name: Joi.string().min(1).max(100),
     location: Joi.string().max(100).allow("", null),
-}).or("name", "location");
+    host: Joi.string().min(1).max(255),
+    port: Joi.number().integer().min(1).max(65535),
+    username: Joi.string().min(1).max(100),
+    authMethod: Joi.string().valid("password", "ssh-key"),
+    password: Joi.string().max(500).when("authMethod", {
+        is: "password",
+        then: Joi.optional(),
+        otherwise: Joi.forbidden(),
+    }),
+    sshKey: Joi.string().max(10000).when("authMethod", {
+        is: "ssh-key",
+        then: Joi.optional(),
+        otherwise: Joi.forbidden(),
+    }),
+    passphrase: Joi.string().max(500).allow("", null).when("authMethod", {
+        is: "ssh-key",
+        then: Joi.optional(),
+        otherwise: Joi.forbidden(),
+    }),
+}).min(1);
 
 module.exports.executeCommandValidation = Joi.object({
     command: Joi.string().min(1).max(10000).required(),

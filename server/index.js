@@ -25,6 +25,7 @@ const appsRoutes = require("./routes/apps");
 const imageRoutes = require("./routes/image");
 const deploymentRoutes = require("./routes/deployment");
 const gitCredentialRoutes = require("./routes/gitCredential");
+const projectRoutes = require("./routes/project");
 require("./utils/folder");
 
 process.on("uncaughtException", (err) => errorHandling(err));
@@ -46,6 +47,7 @@ app.route("/api/images", imageRoutes);
 app.route("/api/stacks", stackRoutes);
 app.route("/api/deployments", deploymentRoutes);
 app.route("/api/git-credentials", gitCredentialRoutes);
+app.route("/api/projects", projectRoutes);
 
 app.route("/api/sources", sourceRoutes);
 app.route("/api/apps", appsRoutes);
@@ -90,6 +92,7 @@ db.authenticate()
             port: APP_PORT,
             fetch: app.fetch,
             websocket,
+            idleTimeout: 255,
         });
 
         logger.system(`Server listening on port ${APP_PORT}`);

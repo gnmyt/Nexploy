@@ -10,23 +10,60 @@ const Session = require("../models/Session");
 const Account = require("../models/Account");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
+const { getAccessibleResourceIds, hasContainerAccess } = require("../middlewares/projectAccess");
+const { Op } = require("sequelize");
 
 const app = new Hono();
 
 app.get("/", authenticate, async (c) => {
+    const user = c.get("user");
     const serverId = c.req.query("serverId") ? parseInt(c.req.query("serverId"), 10) : null;
-    const containers = await listContainers(serverId);
-    return c.json(containers);
+
+    if (user.role === "admin") {
+        const containers = await listContainers(serverId);
+        return c.json(containers);
+    }
+
+    const containerIds = await getAccessibleResourceIds(user.id, "container");
+    const serverIds = await getAccessibleResourceIds(user.id, "server");
+    const where = {};
+    if (serverId) where.serverId = serverId;
+
+    const conditions = [];
+    if (containerIds.length > 0) conditions.push({ id: { [Op.in]: containerIds } });
+    if (serverIds.length > 0) conditions.push({ serverId: { [Op.in]: serverIds } });
+
+    if (conditions.length === 0) return c.json([]);
+    where[Op.or] = conditions;
+
+    const containers = await Container.findAll({ where });
+    return c.json(containers.map(c => {
+        const raw = c.dataValues || c;
+        try { raw.ports = raw.ports ? JSON.parse(raw.ports) : []; } catch { raw.ports = []; }
+        try { raw.networks = raw.networks ? JSON.parse(raw.networks) : []; } catch { raw.networks = []; }
+        try { raw.volumes = raw.volumes ? JSON.parse(raw.volumes) : []; } catch { raw.volumes = []; }
+        return raw;
+    }));
 });
 
 app.post("/refresh", authenticate, async (c) => {
+    const user = c.get("user");
     const serverId = c.req.query("serverId") ? parseInt(c.req.query("serverId"), 10) : null;
+    if (user.role !== "admin") {
+        return c.json({ code: 403, message: "Admin access required" }, 403);
+    }
     const result = await refreshContainers(serverId);
     return c.json(result);
 });
 
 app.get("/:id", authenticate, async (c) => {
+    const user = c.get("user");
     const id = c.req.param("id");
+
+    if (user.role !== "admin") {
+        const hasAccess = await hasContainerAccess(user.id, id);
+        if (!hasAccess) return c.json({ code: 403, message: "Access denied" }, 403);
+    }
 
     const container = await getContainer(id);
     if (container?.code) return c.json(container, 404);
@@ -35,7 +72,13 @@ app.get("/:id", authenticate, async (c) => {
 });
 
 app.get("/:id/stats", authenticate, async (c) => {
+    const user = c.get("user");
     const id = c.req.param("id");
+
+    if (user.role !== "admin") {
+        const hasAccess = await hasContainerAccess(user.id, id);
+        if (!hasAccess) return c.json({ code: 403, message: "Access denied" }, 403);
+    }
 
     const stats = await getContainerStats(id);
     if (stats?.code) return c.json(stats, stats.code === 401 ? 404 : 400);
@@ -44,7 +87,13 @@ app.get("/:id/stats", authenticate, async (c) => {
 });
 
 app.get("/:id/logs", authenticate, async (c) => {
+    const user = c.get("user");
     const id = c.req.param("id");
+
+    if (user.role !== "admin") {
+        const hasAccess = await hasContainerAccess(user.id, id);
+        if (!hasAccess) return c.json({ code: 403, message: "Access denied" }, 403);
+    }
 
     const tail = parseInt(c.req.query("tail"), 10) || 100;
     const timestamps = c.req.query("timestamps") === "true";
@@ -55,7 +104,13 @@ app.get("/:id/logs", authenticate, async (c) => {
 });
 
 app.post("/:id/action", authenticate, async (c) => {
+    const user = c.get("user");
     const id = c.req.param("id");
+
+    if (user.role !== "admin") {
+        const hasAccess = await hasContainerAccess(user.id, id, "deploy");
+        if (!hasAccess) return c.json({ code: 403, message: "Access denied" }, 403);
+    }
 
     const body = await c.req.json();
     const error = validateSchema(containerActionValidation, body);
@@ -68,7 +123,13 @@ app.post("/:id/action", authenticate, async (c) => {
 });
 
 app.delete("/:id", authenticate, async (c) => {
+    const user = c.get("user");
     const id = c.req.param("id");
+
+    if (user.role !== "admin") {
+        const hasAccess = await hasContainerAccess(user.id, id, "manage");
+        if (!hasAccess) return c.json({ code: 403, message: "Access denied" }, 403);
+    }
 
     const force = c.req.query("force") === "true";
     const result = await removeContainer(id, force);
@@ -91,12 +152,18 @@ app.get("/:id/logs/stream", upgradeWebSocket(async (c) => {
         const session = await Session.findOne({ where: { token } });
         if (!session) throw { code: 4401, msg: "Invalid token" };
 
-        if (!await Account.findByPk(session.accountId)) throw { code: 4401, msg: "Account not found" };
+        const account = await Account.findByPk(session.accountId);
+        if (!account) throw { code: 4401, msg: "Account not found" };
 
         const containerIdParam = c.req.param("id");
 
         const container = await Container.findOne({ where: { containerId: containerIdParam } });
         if (!container) throw { code: 4404, msg: "Container not found" };
+
+        if (account.role !== "admin") {
+            const access = await hasContainerAccess(account.id, containerIdParam);
+            if (!access) throw { code: 4403, msg: "Access denied" };
+        }
 
         containerId = container.containerId;
 
@@ -162,12 +229,18 @@ app.get("/:id/terminal", upgradeWebSocket(async (c) => {
         const session = await Session.findOne({ where: { token } });
         if (!session) throw { code: 4401, msg: "Invalid token" };
 
-        if (!await Account.findByPk(session.accountId)) throw { code: 4401, msg: "Account not found" };
+        const account = await Account.findByPk(session.accountId);
+        if (!account) throw { code: 4401, msg: "Account not found" };
 
         const containerIdParam = c.req.param("id");
 
         const container = await Container.findOne({ where: { containerId: containerIdParam } });
         if (!container) throw { code: 4404, msg: "Container not found" };
+
+        if (account.role !== "admin") {
+            const access = await hasContainerAccess(account.id, containerIdParam, "deploy");
+            if (!access) throw { code: 4403, msg: "Access denied" };
+        }
 
         containerId = container.containerId;
 

@@ -68,7 +68,6 @@ module.exports = {
             });
             logger.info("Created containers table");
 
-            // Add index for faster lookups
             await queryInterface.addIndex("containers", ["serverId"]);
             await queryInterface.addIndex("containers", ["containerId", "serverId"], { unique: true });
         }

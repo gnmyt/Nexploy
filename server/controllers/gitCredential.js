@@ -97,10 +97,6 @@ module.exports.deleteGitCredential = async (id) => {
     return { message: "Git credential deleted" };
 };
 
-/**
- * Resolves the authenticated git clone URL for a deployment.
- * Matches the deployment's repoUrl host against stored credentials.
- */
 module.exports.resolveGitUrl = async (repoUrl, gitCredentialId = null) => {
     let cred = null;
 
