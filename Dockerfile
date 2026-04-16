@@ -8,6 +8,13 @@ RUN bun install
 COPY client/ .
 RUN bun run build
 
+FROM rust:1-slim AS runner-builder
+
+WORKDIR /app/runner
+COPY runner/Cargo.toml runner/Cargo.lock* ./
+COPY runner/src ./src
+RUN cargo build --release
+
 FROM oven/bun:1
 
 WORKDIR /app
@@ -21,6 +28,7 @@ ENV LOG_LEVEL=system
 WORKDIR /app
 
 COPY --from=client-builder /app/client/dist ./dist
+COPY --from=runner-builder /app/runner/target/release/runner ./bin/runner
 
 COPY --from=server-builder /app/server ./server
 COPY --from=server-builder /app/node_modules ./node_modules
