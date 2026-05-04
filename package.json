@@ -16,7 +16,7 @@
     "ssh2": "^1.17.0",
     "uuid": "^14.0.0",
     "winston": "^3.19.0",
-    "yaml": "^2.8.3"
+    "yaml": "^2.8.4"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
