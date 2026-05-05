@@ -6,6 +6,7 @@ const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
 const eventBus = require("../utils/eventBus");
 const dockerApi = require("../utils/dockerApi");
+const { getDockerComposeCmd } = require("../utils/dockerCompose");
 
 module.exports.listStacks = async (serverId = null) => {
     const where = {};
@@ -47,7 +48,8 @@ module.exports.stackAction = async (id, action) => {
         if (envCheck.stdout?.trim() === "yes") envFlag = " --env-file .env";
     } catch {}
 
-    const composeCmd = `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)}${envFlag}`;
+    const compose = await getDockerComposeCmd(session);
+    const composeCmd = `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)}${envFlag}`;
     const actionMap = {
         start: `${composeCmd} up -d --remove-orphans`,
         stop: `${composeCmd} stop`,
@@ -180,7 +182,8 @@ module.exports.deleteStack = async (id) => {
     if (error) return error;
 
     try {
-        const composeCmd = `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)}`;
+        const compose = await getDockerComposeCmd(session);
+        const composeCmd = `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)}`;
         await session.exec(`${composeCmd} down -v 2>/dev/null; true`, { stream: false });
 
         const docker = dockerApi(session);
@@ -242,8 +245,9 @@ module.exports.getStackLogs = async (id, tail = 100, timestamps = false) => {
 
     try {
         const tsFlag = timestamps ? " --timestamps" : "";
+        const compose = await getDockerComposeCmd(session);
         const result = await session.exec(
-            `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)} logs --tail=${parseInt(tail)}${tsFlag} 2>&1`,
+            `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)} logs --tail=${parseInt(tail)}${tsFlag} 2>&1`,
             { stream: false }
         );
         return { logs: result.stdout };
@@ -332,8 +336,9 @@ const getVolumeMountPaths = async (session, stack) => {
             ? stack.configFile
             : `${stack.directory}/${stack.configFile}`;
 
+        const compose = await getDockerComposeCmd(session);
         const result = await session.exec(
-            `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(composePath)} config 2>/dev/null | grep -E '^\\s+source:\\s' | sed 's/^.*source:\\s*//' | sort -u`,
+            `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(composePath)} config 2>/dev/null | grep -E '^\\s+source:\\s' | sed 's/^.*source:\\s*//' | sort -u`,
             { stream: false }
         );
 

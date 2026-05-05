@@ -10,6 +10,8 @@ RUN bun run build
 
 FROM rust:1-slim AS runner-builder
 
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app/runner
 COPY runner/Cargo.toml runner/Cargo.lock* ./
 COPY runner/src ./src
@@ -30,10 +32,7 @@ WORKDIR /app
 COPY --from=client-builder /app/client/dist ./dist
 COPY --from=runner-builder /app/runner/target/release/runner ./bin/runner
 
-COPY --from=server-builder /app/server ./server
-COPY --from=server-builder /app/node_modules ./node_modules
-COPY --from=server-builder /app/package.json ./
-COPY --from=server-builder /app/bun.lock ./
+COPY server/ ./server/
 
 EXPOSE 5979
 

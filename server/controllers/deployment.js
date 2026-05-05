@@ -5,6 +5,7 @@ const { sessionManager } = require("../adapters/SessionManager");
 const { createTask } = require("../tasks/taskRunner");
 const { resolveGitUrl } = require("./gitCredential");
 const logger = require("../utils/logger");
+const { getDockerComposeCmd } = require("../utils/dockerCompose");
 
 const escapeShellArg = (arg) => `'${arg.replace(/'/g, "'\\''")}'`;
 
@@ -104,7 +105,8 @@ module.exports.deleteDeployment = async (id) => {
     if (deployment.stackId) {
         const stack = await Stack.findByPk(deployment.stackId);
         if (stack && session) {
-            const composeCmd = `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)}`;
+            const compose = await getDockerComposeCmd(session);
+            const composeCmd = `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)}`;
             await session.exec(`${composeCmd} down -v 2>/dev/null; true`, { stream: false }).catch(() => {});
             await session.exec(`rm -rf ${escapeShellArg(stack.directory)}`, { stream: false }).catch(() => {});
             await Stack.destroy({ where: { id: deployment.stackId } });
@@ -261,8 +263,9 @@ async function deployStack(deployment, session, appendLog) {
 
     deployment.stackId = stack.id;
 
+    const compose = await getDockerComposeCmd(session);
     const composeResult = await session.exec(
-        `cd ${escapeShellArg(directory)} && docker compose -f ${configFile} up -d --remove-orphans`,
+        `cd ${escapeShellArg(directory)} && ${compose} -f ${configFile} up -d --remove-orphans`,
         { stream: false }
     );
     appendLog(composeResult.stdout || "");
