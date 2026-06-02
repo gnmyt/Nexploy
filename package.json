@@ -19,7 +19,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "concurrently": "^10.0.0",
+    "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",
     "vitepress": "^1.6.4"
   },
