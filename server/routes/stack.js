@@ -11,6 +11,7 @@ const Session = require("../models/Session");
 const Account = require("../models/Account");
 const { sessionManager } = require("../adapters/SessionManager");
 const logger = require("../utils/logger");
+const { getDockerComposeCmd } = require("../utils/dockerCompose");
 const { getAccessibleResourceIds, requireResourceAccess, hasResourceAccess } = require("../middlewares/projectAccess");
 const { Op } = require("sequelize");
 
@@ -239,6 +240,11 @@ app.get("/:id/logs/stream", upgradeWebSocket(async (c) => {
         authError = err.code && err.msg ? err : { code: 4500, msg: `Connection failed: ${err.message}` };
     }
 
+    let composeExe = "docker compose";
+    if (sshSession) {
+        try { composeExe = await getDockerComposeCmd(sshSession); } catch {}
+    }
+
     return {
         onOpen(evt, ws) {
             if (authError) {
@@ -246,7 +252,7 @@ app.get("/:id/logs/stream", upgradeWebSocket(async (c) => {
                 return;
             }
 
-            const cmd = `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)} logs --follow --tail=${tail} 2>&1`;
+            const cmd = `cd ${escapeShellArg(stack.directory)} && ${composeExe} -f ${escapeShellArg(stack.configFile)} logs --follow --tail=${tail} 2>&1`;
             const sshClient = sshSession.adapter.client;
 
             sshClient.exec(cmd, (err, ch) => {

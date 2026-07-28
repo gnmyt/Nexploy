@@ -5,6 +5,7 @@ const { sessionManager } = require("../adapters/SessionManager");
 const { createTask } = require("../tasks/taskRunner");
 const { getApp } = require("./source");
 const logger = require("../utils/logger");
+const { getDockerComposeCmd } = require("../utils/dockerCompose");
 const fs = require("fs");
 const path = require("path");
 const yaml = require("yaml");
@@ -221,8 +222,9 @@ const installDockerApp = async (serverId, sourceName, slug, appData, parentSlug 
             services: 0,
         });
 
+        const compose = await getDockerComposeCmd(session);
         const startResult = await session.exec(
-            `cd ${escapeShellArg(directory)} && docker compose -f ${configFile} up -d --remove-orphans`,
+            `cd ${escapeShellArg(directory)} && ${compose} -f ${configFile} up -d --remove-orphans`,
             { stream: false }
         );
         if (startResult.code !== 0) {
@@ -245,7 +247,7 @@ const installDockerApp = async (serverId, sourceName, slug, appData, parentSlug 
         await executeHook(session, directory, sourceName, slug, "postInstall", appData, userInputs);
 
         const restartResult = await session.exec(
-            `cd ${escapeShellArg(directory)} && docker compose -f ${configFile} up -d --remove-orphans`,
+            `cd ${escapeShellArg(directory)} && ${compose} -f ${configFile} up -d --remove-orphans`,
             { stream: false }
         );
         if (restartResult.code !== 0) {
@@ -371,8 +373,9 @@ module.exports.updateApp = async (installedAppId) => {
             managedBy: "nexploy",
         });
 
+        const compose = await getDockerComposeCmd(session);
         const pullResult = await session.exec(
-            `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)} pull`,
+            `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)} pull`,
             { stream: false }
         );
         if (pullResult.code !== 0) {
@@ -380,7 +383,7 @@ module.exports.updateApp = async (installedAppId) => {
         }
 
         const upResult = await session.exec(
-            `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)} up -d --remove-orphans`,
+            `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)} up -d --remove-orphans`,
             { stream: false }
         );
         if (upResult.code !== 0) {
@@ -420,7 +423,8 @@ module.exports.uninstallApp = async (installedAppId) => {
             const { session, error } = await getSessionForServer(installed.serverId);
             if (!error) {
                 try {
-                    const composeCmd = `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)}`;
+                    const compose = await getDockerComposeCmd(session);
+                    const composeCmd = `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)}`;
                     await session.exec(`${composeCmd} down -v 2>/dev/null; true`, { stream: false });
                     await session.exec(`rm -rf ${escapeShellArg(stack.directory)}`, { stream: false });
                 } catch (err) {
@@ -537,8 +541,9 @@ module.exports.updateInstalledAppConfig = async (id, newConfig) => {
             if (!error) {
                 await executeHook(session, stack.directory, installed.source, installed.slug, "onConfigure", appData, newConfig);
 
+                const compose = await getDockerComposeCmd(session);
                 await session.exec(
-                    `cd ${escapeShellArg(stack.directory)} && docker compose -f ${escapeShellArg(stack.configFile)} up -d --remove-orphans`,
+                    `cd ${escapeShellArg(stack.directory)} && ${compose} -f ${escapeShellArg(stack.configFile)} up -d --remove-orphans`,
                     { stream: false }
                 );
                 await createTask("UpdateStacks", { serverId: installed.serverId });
