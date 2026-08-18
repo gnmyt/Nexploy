@@ -18,7 +18,7 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
-        "concurrently": "^10.0.4",
+        "concurrently": "^10.0.5",
         "dotenv": "^17.4.2",
         "vitepress": "^1.6.4",
       },
@@ -361,7 +361,7 @@
 
     "commander": ["commander@2.20.3", "", {}, "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="],
 
-    "concurrently": ["concurrently@10.0.4", "", { "dependencies": { "chalk": "5.6.2", "rxjs": "7.8.2", "shell-quote": "1.9.0", "supports-color": "10.2.2", "tree-kill": "1.2.2", "yargs": "18.0.0" }, "bin": { "conc": "dist/bin/index.js", "concurrently": "dist/bin/index.js" } }, "sha512-trZql+7l/0+WRAsAnEdctr4+iiOS6ZrViI6H8QWcCF9MFS/LT0dKpe8vluB1to6it+OxSI4VospFTIFMW8DJRw=="],
+    "concurrently": ["concurrently@10.0.5", "", { "dependencies": { "chalk": "5.6.2", "rxjs": "7.8.2", "shell-quote": "1.9.0", "supports-color": "10.2.2", "tree-kill": "1.2.2", "yargs": "18.0.0" }, "bin": { "conc": "dist/bin/index.js", "concurrently": "dist/bin/index.js" } }, "sha512-JaP/CoftUrCcAFW/g//RbgEGwlelnEae6cfBLgH6ZdO6s8jPkn6p9SB9u6pdVxYXoiSnFqseOlHfrEfF82TVOg=="],
 
     "copy-anything": ["copy-anything@4.0.5", "", { "dependencies": { "is-what": "^5.2.0" } }, "sha512-7Vv6asjS4gMOuILabD3l739tsaxFQmC+a7pLZm02zyvs8p977bL3zEgq3yDk5rn9B0PbYgIv++jmHcuUab4RhA=="],
 
