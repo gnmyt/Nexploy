@@ -18,7 +18,7 @@
     "chart.js": "^4.5.1",
     "composerize": "^1.7.6",
     "qrcode.react": "^4.2.0",
-    "react": "^19.2.8",
+    "react": "^19.3.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.3",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/react": "^19.2.18",
+    "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.10.0",
