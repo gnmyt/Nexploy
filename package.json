@@ -8,7 +8,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "decompress": "^4.2.1",
-    "hono": "^4.13.16",
+    "hono": "^4.13.17",
     "joi": "^18.3.1",
     "sequelize": "^6.37.8",
     "speakeasy": "^2.0.0",
